@@ -169,7 +169,7 @@ button{border:none;cursor:pointer}
         Les réglages de la loterie sont conservés.
       </p>
       <div class="actions">
-        <button type="button" class="b d" onclick="resetLotteryData()">Reset complet loterie</button>
+        <button type="button" class="b d" id="resetLotteryBtn">Reset complet loterie</button>
       </div>
     </div>
 
@@ -293,57 +293,7 @@ async function createVoucherForWinner(){
   await fbSet('/vouchers/'+t,data);
   await fbPatch('/loterieEntries/'+selectedWinner.id,{winner:true,voucherToken:t,voucherCreatedAt:now()});
   selectedWinner=null;
-  await 
-
-async function resetLotteryData(){
-  const msg1 = "ATTENTION : tu vas supprimer toutes les participations, statistiques, tirages, bons QR et blocages anti-doublon. Les réglages seront conservés.";
-  if(!confirm(msg1)) return;
-
-  const typed = prompt("Pour confirmer, tape exactement : RESET LOTERIE");
-  if(typed !== "RESET LOTERIE"){
-    toast("Reset annulé");
-    return;
-  }
-
-  const msg2 = "Dernière confirmation : cette action est irréversible depuis l'admin. Continuer ?";
-  if(!confirm(msg2)) return;
-
-  try{
-    await Promise.all([
-      fbSet('/loterieEntries', null),
-      fbSet('/loterieEvents', null),
-      fbSet('/loterieLocks', null),
-      fbSet('/draws', null),
-      fbSet('/vouchers', null)
-    ]);
-
-    entries = [];
-    vouchers = [];
-    draws = [];
-    selectedWinner = null;
-
-    renderAll();
-
-    const winnerBox = document.getElementById('winnerBox');
-    if(winnerBox) winnerBox.style.display='none';
-
-    const drawInfo = document.getElementById('drawInfo');
-    if(drawInfo) drawInfo.innerHTML='';
-
-    const verifyResult = document.getElementById('verifyResult');
-    if(verifyResult) verifyResult.innerHTML='';
-
-    const verifyToken = document.getElementById('verifyToken');
-    if(verifyToken) verifyToken.value='';
-
-    toast("Stats loterie réinitialisées");
-  }catch(e){
-    console.error(e);
-    alert("Erreur pendant le reset. Vérifie ta connexion puis réessaie.");
-  }
-}
-
-loadAll();
+  await loadAll();
   tab('vouchers');
   $('verifyToken').value=t;
   verifyVoucher();
@@ -385,6 +335,73 @@ function exportRows(filename, rows){
 function exportEntries(){
   exportRows('loterie_participations.csv', [['date','prenom','nom','email','telephone','carte','note','commentaire','googleClicked','magicCardClicked'], ...filteredEntries().map(e=>[dateStr(e.createdAt),e.firstName,e.lastName,e.email,e.phone,e.hasMagicCard,e.rating,e.comment,e.googleClicked?'oui':'non',e.magicCardClicked?'oui':'non'])]);
 }
+
+async function resetLotteryData(){
+  const msg1 = "ATTENTION : tu vas supprimer toutes les participations, statistiques, tirages, bons QR et blocages anti-doublon. Les réglages seront conservés.";
+  if(!confirm(msg1)) return;
+
+  const typed = prompt("Pour confirmer, tape exactement : RESET LOTERIE");
+  if(typed !== "RESET LOTERIE"){
+    toast("Reset annulé");
+    return;
+  }
+
+  const msg2 = "Dernière confirmation : cette action est irréversible depuis l'admin. Continuer ?";
+  if(!confirm(msg2)) return;
+
+  const btn = document.getElementById('resetLotteryBtn');
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "Reset en cours...";
+  }
+
+  try{
+    await fbSet('/loterieEntries', null);
+    await fbSet('/loterieEvents', null);
+    await fbSet('/loterieLocks', null);
+    await fbSet('/draws', null);
+    await fbSet('/vouchers', null);
+
+    entries = [];
+    vouchers = [];
+    draws = [];
+    selectedWinner = null;
+
+    renderAll();
+
+    const winnerBox = document.getElementById('winnerBox');
+    if(winnerBox) winnerBox.style.display='none';
+
+    const drawInfo = document.getElementById('drawInfo');
+    if(drawInfo) drawInfo.innerHTML='';
+
+    const verifyResult = document.getElementById('verifyResult');
+    if(verifyResult) verifyResult.innerHTML='';
+
+    const verifyToken = document.getElementById('verifyToken');
+    if(verifyToken) verifyToken.value='';
+
+    toast("Stats loterie réinitialisées");
+  }catch(e){
+    console.error(e);
+    alert("Erreur pendant le reset. Vérifie ta connexion puis réessaie.");
+  }finally{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Reset complet loterie";
+    }
+  }
+}
+
+function bindResetButton(){
+  const btn = document.getElementById('resetLotteryBtn');
+  if(btn && !btn.dataset.bound){
+    btn.dataset.bound = "1";
+    btn.addEventListener('click', resetLotteryData);
+  }
+}
+
+bindResetButton();
 loadAll();
 </script>
 </body>
