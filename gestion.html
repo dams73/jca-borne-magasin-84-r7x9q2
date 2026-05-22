@@ -44,6 +44,19 @@ button{border:none;cursor:pointer}
 .qrbox img{width:220px;height:220px;background:white;border-radius:16px;padding:8px}
 .mono{font-family:'Space Mono',monospace;word-break:break-all}
 @media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}.row,.row3{grid-template-columns:1fr}.qrbox{grid-template-columns:1fr}}
+
+.danger-zone{
+  border-color:rgba(255,59,59,.45)!important;
+  background:linear-gradient(180deg,rgba(255,59,59,.10),rgba(255,255,255,.035))!important;
+}
+.danger-zone h2{color:var(--red)}
+.warn{
+  color:#ffb3b3;
+  line-height:1.55;
+  font-size:13px;
+  margin:8px 0 0;
+}
+
 </style>
 </head>
 <body>
@@ -148,6 +161,18 @@ button{border:none;cursor:pointer}
     <label>Texte 0 à 9</label><textarea id="thanksLowText"></textarea>
     <div class="actions"><button class="b s" onclick="saveConfig()">Sauvegarder</button></div>
   </div>
+
+    <div class="card danger-zone">
+      <h2>Reset statistiques loterie</h2>
+      <p class="warn">
+        Cette action efface les participations, événements de tracking, tirages, bons générés et blocages anti-doublon.
+        Les réglages de la loterie sont conservés.
+      </p>
+      <div class="actions">
+        <button class="b d" onclick="resetLotteryData()">Reset complet loterie</button>
+      </div>
+    </div>
+
 </section>
 
 <div id="toast"></div>
@@ -268,7 +293,48 @@ async function createVoucherForWinner(){
   await fbSet('/vouchers/'+t,data);
   await fbPatch('/loterieEntries/'+selectedWinner.id,{winner:true,voucherToken:t,voucherCreatedAt:now()});
   selectedWinner=null;
-  await loadAll();
+  await 
+async function resetLotteryData(){
+  const msg1 = "ATTENTION : tu vas supprimer toutes les participations, statistiques, tirages, bons QR et blocages anti-doublon. Les réglages seront conservés.";
+  if(!confirm(msg1)) return;
+
+  const typed = prompt("Pour confirmer, tape exactement : RESET LOTERIE");
+  if(typed !== "RESET LOTERIE"){
+    toast("Reset annulé");
+    return;
+  }
+
+  const msg2 = "Dernière confirmation : cette action est irréversible depuis l'admin. Continuer ?";
+  if(!confirm(msg2)) return;
+
+  try{
+    await Promise.all([
+      fbSet('/loterieEntries', null),
+      fbSet('/loterieEvents', null),
+      fbSet('/loterieLocks', null),
+      fbSet('/draws', null),
+      fbSet('/vouchers', null)
+    ]);
+
+    entries = [];
+    vouchers = [];
+    draws = [];
+    selectedWinner = null;
+
+    renderAll();
+    if($('winnerBox')) $('winnerBox').style.display='none';
+    if($('drawInfo')) $('drawInfo').innerHTML='';
+    if($('verifyResult')) $('verifyResult').innerHTML='';
+    if($('verifyToken')) $('verifyToken').value='';
+
+    toast("Stats loterie réinitialisées");
+  }catch(e){
+    console.error(e);
+    alert("Erreur pendant le reset. Vérifie ta connexion puis réessaie.");
+  }
+}
+
+loadAll();
   tab('vouchers');
   $('verifyToken').value=t;
   verifyVoucher();
