@@ -169,7 +169,7 @@ button{border:none;cursor:pointer}
         Les réglages de la loterie sont conservés.
       </p>
       <div class="actions">
-        <button class="b d" onclick="resetLotteryData()">Reset complet loterie</button>
+        <button type="button" class="b d" onclick="resetLotteryData()">Reset complet loterie</button>
       </div>
     </div>
 
@@ -294,6 +294,7 @@ async function createVoucherForWinner(){
   await fbPatch('/loterieEntries/'+selectedWinner.id,{winner:true,voucherToken:t,voucherCreatedAt:now()});
   selectedWinner=null;
   await 
+
 async function resetLotteryData(){
   const msg1 = "ATTENTION : tu vas supprimer toutes les participations, statistiques, tirages, bons QR et blocages anti-doublon. Les réglages seront conservés.";
   if(!confirm(msg1)) return;
@@ -322,10 +323,18 @@ async function resetLotteryData(){
     selectedWinner = null;
 
     renderAll();
-    if($('winnerBox')) $('winnerBox').style.display='none';
-    if($('drawInfo')) $('drawInfo').innerHTML='';
-    if($('verifyResult')) $('verifyResult').innerHTML='';
-    if($('verifyToken')) $('verifyToken').value='';
+
+    const winnerBox = document.getElementById('winnerBox');
+    if(winnerBox) winnerBox.style.display='none';
+
+    const drawInfo = document.getElementById('drawInfo');
+    if(drawInfo) drawInfo.innerHTML='';
+
+    const verifyResult = document.getElementById('verifyResult');
+    if(verifyResult) verifyResult.innerHTML='';
+
+    const verifyToken = document.getElementById('verifyToken');
+    if(verifyToken) verifyToken.value='';
 
     toast("Stats loterie réinitialisées");
   }catch(e){
