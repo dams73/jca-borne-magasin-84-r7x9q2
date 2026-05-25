@@ -1,9 +1,9 @@
-V9.8 — gain visible dans l'admin
+V9.9 — corrections limitées
 
-Base : V9.7.
-Correction limitée :
-- écrit le gagnant directement dans /scores avec lot, lotEmoji, score, diff, day, ts
-- l'admin lit /scores, donc le lot #2 doit remonter
-- mise à jour du pseudo ensuite si validé
-- aucun changement visuel
-- aucun changement QR / retour / chrono / code
+Base : V9.8 validée.
+Corrections :
+- Masque le titre GAGNÉ ! sur l'écran pseudo.
+- Corrige le classement démo qui répétait les mêmes joueurs.
+- Évite plusieurs timers de démo superposés.
+- Retire le bloc pilotage écran de jeu dans l'admin.
+- Aucun changement QR / chrono / code / retour / gain.

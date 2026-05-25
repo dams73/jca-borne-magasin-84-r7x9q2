@@ -715,6 +715,12 @@ body::before{
   transform:scale(.96)!important;
 }
 
+
+/* === V9.9 corrections limitées : titre save + classement démo === */
+#s-save .save-win-title{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -828,7 +834,7 @@ body::before{
 <!-- SAVE -->
 <div class="screen hidden" id="s-save">
   <div class="save-win-card">
-    <div class="save-win-title">GAGNÉ !</div>
+    <div class="save-win-title" style="display:none"></div>
     <div class="save-win-subtitle">Enregistre ton pseudo</div>
     <div class="save-win-score" id="saveDisp"></div>
     <input class="pinput save-win-input" id="pseudoIn" type="text" maxlength="16" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false" readonly>
@@ -2428,6 +2434,85 @@ go('s-demo');
       updateWinningPseudoV98();
     }, 120);
   }, true);
+})();
+</script>
+
+
+<script>
+/* === V9.9 correctif classement démo sans doublons === */
+(function(){
+  function uniqueScoresV99(scores){
+    const seen = new Set();
+    return (scores || []).filter(s => {
+      const key = [
+        s._key || '',
+        s.pseudo || '',
+        s.score || '',
+        s.rawDiff || '',
+        s.ts || ''
+      ].join('|');
+
+      // Si _key existe, il suffit déjà. Sinon fallback pseudo/score.
+      const dedupeKey = s._key ? ('k:' + s._key) : ('v:' + key);
+      if(seen.has(dedupeKey)) return false;
+      seen.add(dedupeKey);
+      return true;
+    });
+  }
+
+  // Override doux : même affichage, mais sans boucle qui répète UPP/JUL/UPP/JUL.
+  if(typeof window.renderDemoScores === 'function' || typeof renderDemoScores === 'function'){
+    const oldRenderDemoScores = renderDemoScores;
+    renderDemoScores = function(){
+      let scores = [];
+      try {
+        const todayScores = topToday(10);
+        scores = todayScores.length ? todayScores : topAll(10);
+      } catch(e) {
+        return oldRenderDemoScores();
+      }
+
+      scores = uniqueScoresV99(scores);
+      const el = document.getElementById('demScores');
+      if(!el) return oldRenderDemoScores();
+
+      el.innerHTML = '';
+      if(!scores.length){
+        el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:12px;font-size:13px">Sois le premier à jouer !</div>';
+        return;
+      }
+
+      const max = Math.min(4, scores.length);
+      if(typeof demoIdx === 'undefined') demoIdx = 0;
+      if(demoIdx >= scores.length) demoIdx = 0;
+
+      const slice = scores.slice(demoIdx, demoIdx + max);
+      if(slice.length < max){
+        slice.push(...scores.slice(0, max - slice.length));
+      }
+
+      slice.forEach((s,i)=>{
+        const r = ((demoIdx+i)%scores.length)+1;
+        const gi = gradeInfo(s.diff || 0);
+        const color = gi.color || 'var(--muted)';
+        const medal = r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r;
+        const pseudo = s.pseudo || 'JOUEUR';
+        const raw = s.rawDiff || 0;
+        el.innerHTML += `<div class="drow"><div style="font-family:'Bebas Neue',cursive;font-size:20px;width:32px;text-align:center;color:${rcol(r-1)}">${medal}</div><div style="flex:1;font-size:14px;font-weight:700;letter-spacing:2px">${pseudo}</div><div style="color:${color};font-family:'Bebas Neue',cursive;font-size:18px;min-width:80px;text-align:right">${fDiff(raw)}</div></div>`;
+      });
+
+      demoIdx = (demoIdx + 1) % Math.max(1, scores.length);
+    };
+  }
+
+  // Sécurité : éviter plusieurs setInterval de démo en parallèle.
+  if(typeof window.startDemo === 'function' || typeof startDemo === 'function'){
+    const oldStartDemo = startDemo;
+    startDemo = function(){
+      try { if(typeof demoTimer !== 'undefined') clearInterval(demoTimer); } catch(e) {}
+      return oldStartDemo.apply(this, arguments);
+    };
+  }
 })();
 </script>
 
