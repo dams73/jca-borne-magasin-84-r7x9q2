@@ -810,7 +810,7 @@ body::before{
     </div>
     <div class="lottery-actions">
       <button class="bmain start" id="btnLotterySave">ENREGISTRER MON SCORE</button>
-      <button class="bplain" id="btnLotterySkip">RETOUR AU JEU</button>
+      <button class="bplain" id="btnLotterySkip" onclick="return retourQrDemoV97(event)">RETOUR AU JEU</button>
     </div>
   </div>
 </div>
@@ -822,7 +822,7 @@ body::before{
   <div class="won-lot-name" id="wonLotName" style="color:var(--gold)"></div>
   <div class="won-lot-desc" id="wonLotDesc"></div>
   <div class="won-score" id="wonScore"></div>
-  <button class="bmain start" id="btnWonNext" style="margin-top:8px">ENREGISTRER MON SCORE</button>
+  <button class="bmain start" id="btnWonNext" style="margin-top:8px" onclick="captureEtSauveGainV97(event)">ENREGISTRER MON SCORE</button>
 </div>
 
 <!-- SAVE -->
@@ -845,7 +845,7 @@ body::before{
     </div>
     <div class="err-msg" id="saveErr"></div>
     <div class="save-win-actions">
-      <button type="button" class="bval" id="btnSave">VALIDER</button>
+      <button type="button" class="bval" id="btnSave" onclick="majPseudoGainV97()">VALIDER</button>
       <button type="button" class="bskip" id="btnSkip">Passer sans sauvegarder</button>
     </div>
   </div>
@@ -1944,179 +1944,6 @@ go('s-demo');
 
 
 <script>
-/* === V9.5 correctif gagnant immédiat uniquement === */
-(function(){
-  const FB_BASE = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
-  let winPayloadV95 = null;
-
-  function text(id){
-    const el = document.getElementById(id);
-    return el ? String(el.textContent || '').trim() : '';
-  }
-
-  function value(id){
-    const el = document.getElementById(id);
-    return el ? String(el.value || '').trim() : '';
-  }
-
-  function getPseudo(){
-    return value('pseudoIn') || value('pseudo') || value('pseudoInput') || '';
-  }
-
-  function getCode(){
-    try { if(typeof activeCode !== 'undefined' && activeCode) return String(activeCode); } catch(e){}
-    try { if(typeof currentCode !== 'undefined' && currentCode) return String(currentCode); } catch(e){}
-    try { if(typeof codeVal !== 'undefined' && codeVal) return String(codeVal); } catch(e){}
-    return '';
-  }
-
-  function getLot(){
-    let lot = '';
-
-    try {
-      if(typeof pendingLot !== 'undefined' && pendingLot){
-        if(typeof pendingLot === 'string') lot = pendingLot;
-        else lot = pendingLot.name || pendingLot.title || pendingLot.label || pendingLot.lot || pendingLot.prize || '';
-      }
-    } catch(e){}
-
-    try {
-      if(!lot && typeof currentLot !== 'undefined' && currentLot){
-        if(typeof currentLot === 'string') lot = currentLot;
-        else lot = currentLot.name || currentLot.title || currentLot.label || currentLot.lot || currentLot.prize || '';
-      }
-    } catch(e){}
-
-    return lot || text('wonLotName') || text('wonLotDesc') || text('wonTitle') || 'Lot gagné';
-  }
-
-  function getScoreData(){
-    const data = {};
-    try {
-      if(typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object') {
-        Object.assign(data, lastScore);
-      }
-    } catch(e){}
-
-    data.displayScore = data.displayScore || text('wonScore') || text('saveDisp') || text('lotteryScore') || '';
-
-    try { if(typeof TARGET !== 'undefined') data.target = TARGET; } catch(e){}
-    try { if(typeof gameState !== 'undefined') data.gameState = gameState; } catch(e){}
-
-    return data;
-  }
-
-  function buildWinnerPayload(stage){
-    const lot = getLot();
-    const pseudo = getPseudo();
-
-    const payload = Object.assign({}, getScoreData(), {
-      pseudo: pseudo || 'À RENSEIGNER',
-      lot: lot,
-      prize: lot,
-      code: getCode(),
-      isWinner: true,
-      win: true,
-      stage: stage,
-      createdAt: Date.now(),
-      savedAt: Date.now()
-    });
-
-    // Stable id to update same winner if pseudo arrives later
-    const code = payload.code || 'no-code';
-    const scorePart = payload.score || payload.diff || payload.displayScore || Date.now();
-    payload.winnerId = code + '-' + String(scorePart).replace(/[^a-zA-Z0-9_-]/g,'');
-    return payload;
-  }
-
-  async function put(path, data){
-    const r = await fetch(FB_BASE + path + '.json', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
-    });
-    if(!r.ok) throw new Error('Firebase PUT '+path+' '+r.status);
-    return await r.json();
-  }
-
-  async function post(path, data){
-    const r = await fetch(FB_BASE + path + '.json', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
-    });
-    if(!r.ok) throw new Error('Firebase POST '+path+' '+r.status);
-    return await r.json();
-  }
-
-  async function saveWinnerNow(stage){
-    const payload = buildWinnerPayload(stage);
-    winPayloadV95 = payload;
-
-    try { sessionStorage.setItem('winPayloadV95', JSON.stringify(payload)); } catch(e){}
-
-    const id = payload.winnerId || ('winner-' + Date.now());
-
-    // 1) Main path for admin winner lists
-    await put('/winners/' + id, payload);
-
-    // 2) Compatibility path in case admin reads another bucket
-    await put('/gameWinners/' + id, payload);
-
-    // 3) Event log, harmless if not used
-    try { await post('/winnerEvents', Object.assign({}, payload, {eventStage: stage})); } catch(e){}
-
-    return payload;
-  }
-
-  async function updateWinnerWithPseudo(){
-    let payload = winPayloadV95;
-    if(!payload){
-      try {
-        const raw = sessionStorage.getItem('winPayloadV95');
-        if(raw) payload = JSON.parse(raw);
-      } catch(e){}
-    }
-    if(!payload) return;
-
-    const pseudo = getPseudo();
-    if(pseudo) payload.pseudo = pseudo;
-    payload.stage = 'pseudo_validated';
-    payload.savedAt = Date.now();
-
-    const id = payload.winnerId || ('winner-' + Date.now());
-    await put('/winners/' + id, payload);
-    await put('/gameWinners/' + id, payload);
-    try { await post('/winnerEvents', Object.assign({}, payload, {eventStage:'pseudo_validated'})); } catch(e){}
-  }
-
-  // Immediate save: this is the important correction.
-  document.addEventListener('click', function(e){
-    const wonNext = e.target && e.target.closest && e.target.closest('#btnWonNext');
-    if(!wonNext) return;
-
-    saveWinnerNow('won_next_clicked').catch(function(err){
-      console.warn('V9.5 gagnant non enregistré au clic lot', err);
-      alert("Attention : le gain n'a pas pu être enregistré. Vérifie la connexion internet.");
-    });
-  }, true);
-
-  // Update with pseudo later if the user validates the score.
-  document.addEventListener('click', function(e){
-    const saveBtn = e.target && e.target.closest && e.target.closest('#btnSave, .bval, #pseudoKeyboard .vk-key[data-action="validate"]');
-    if(!saveBtn) return;
-
-    setTimeout(function(){
-      updateWinnerWithPseudo().catch(function(err){
-        console.warn('V9.5 gagnant non mis à jour avec pseudo', err);
-      });
-    }, 80);
-  }, true);
-})();
-</script>
-
-
-<script>
 /* === V9.6 correctif retour QR vers démo sans rebond code === */
 (function(){
   let qrReturnLockUntil = 0;
@@ -2205,6 +2032,211 @@ go('s-demo');
   ['pointerdown','pointerup','touchstart','click'].forEach(function(evt){
     document.addEventListener(evt, function(e){
       const lock = window.__qrReturnLockUntilV96 || qrReturnLockUntil || 0;
+      if(Date.now() > lock) return;
+
+      const demo = document.getElementById('s-demo');
+      if(demo && !demo.classList.contains('hidden') && e.target && (e.target === demo || demo.contains(e.target))){
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return false;
+      }
+    }, true);
+  });
+})();
+</script>
+
+
+<script>
+/* === V9.7 retour demo + gain immédiat, sans changer le visuel === */
+(function(){
+  const FB_BASE_V97 = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+
+  function textV97(id){
+    const el = document.getElementById(id);
+    return el ? String(el.textContent || '').trim() : '';
+  }
+
+  function valueV97(id){
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function getCodeV97(){
+    try { if(typeof activeCode !== 'undefined' && activeCode) return String(activeCode); } catch(e){}
+    try { if(typeof currentCode !== 'undefined' && currentCode) return String(currentCode); } catch(e){}
+    try { if(typeof codeVal !== 'undefined' && codeVal) return String(codeVal); } catch(e){}
+    return '';
+  }
+
+  function getLotV97(){
+    let lot = '';
+    try {
+      if(typeof pendingLot !== 'undefined' && pendingLot){
+        if(typeof pendingLot === 'string') lot = pendingLot;
+        else lot = pendingLot.name || pendingLot.title || pendingLot.label || pendingLot.lot || pendingLot.prize || '';
+      }
+    } catch(e){}
+    try {
+      if(!lot && typeof currentLot !== 'undefined' && currentLot){
+        if(typeof currentLot === 'string') lot = currentLot;
+        else lot = currentLot.name || currentLot.title || currentLot.label || currentLot.lot || currentLot.prize || '';
+      }
+    } catch(e){}
+    return lot || textV97('wonLotName') || textV97('wonLotDesc') || textV97('wonTitle') || 'Lot gagné';
+  }
+
+  function getScorePayloadV97(){
+    const data = {};
+    try {
+      if(typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object'){
+        Object.assign(data, lastScore);
+      }
+    } catch(e){}
+
+    data.displayScore = data.displayScore || textV97('wonScore') || textV97('saveDisp') || textV97('lotteryScore') || '';
+    data.code = data.code || getCodeV97();
+    return data;
+  }
+
+  function winnerIdV97(payload){
+    const code = payload.code || getCodeV97() || 'no-code';
+    const score = payload.score || payload.diff || payload.displayScore || Date.now();
+    return String(code + '-' + score).replace(/[^a-zA-Z0-9_-]/g,'');
+  }
+
+  async function putV97(path, data){
+    const r = await fetch(FB_BASE_V97 + path + '.json', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase PUT ' + path + ' ' + r.status);
+    return await r.json();
+  }
+
+  async function patchV97(path, data){
+    const r = await fetch(FB_BASE_V97 + path + '.json', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase PATCH ' + path + ' ' + r.status);
+    return await r.json();
+  }
+
+  window.captureEtSauveGainV97 = function(event){
+    // Ne bloque PAS le flux normal : il doit continuer vers l'écran pseudo.
+    const payload = Object.assign({}, getScorePayloadV97(), {
+      lot: getLotV97(),
+      prize: getLotV97(),
+      pseudo: 'À RENSEIGNER',
+      win: true,
+      isWinner: true,
+      createdAt: Date.now(),
+      savedAt: Date.now(),
+      source: 'v9.7_immediate_winner'
+    });
+
+    const id = winnerIdV97(payload);
+    payload.winnerId = id;
+
+    try {
+      sessionStorage.setItem('winnerIdV97', id);
+      sessionStorage.setItem('winnerPayloadV97', JSON.stringify(payload));
+    } catch(e){}
+
+    // Enregistrement immédiat, sans attendre le pseudo.
+    putV97('/winners/' + id, payload)
+      .then(function(){ return putV97('/gameWinners/' + id, payload); })
+      .catch(function(err){
+        console.warn('Gain non enregistré V9.7', err);
+        alert("Attention : le gain n'a pas pu être enregistré. Vérifie internet.");
+      });
+
+    return true;
+  };
+
+  window.majPseudoGainV97 = function(){
+    let id = '';
+    let payload = null;
+
+    try { id = sessionStorage.getItem('winnerIdV97') || ''; } catch(e){}
+    try {
+      const raw = sessionStorage.getItem('winnerPayloadV97');
+      if(raw) payload = JSON.parse(raw);
+    } catch(e){}
+
+    if(!id || !payload) return true;
+
+    const pseudo = valueV97('pseudoIn') || valueV97('pseudo') || valueV97('pseudoInput');
+    if(!pseudo) return true;
+
+    const update = {
+      pseudo: pseudo,
+      savedAt: Date.now(),
+      source: 'v9.7_pseudo_update'
+    };
+
+    patchV97('/winners/' + id, update).catch(function(err){ console.warn('Pseudo gagnant non mis à jour', err); });
+    patchV97('/gameWinners/' + id, update).catch(function(err){ console.warn('Pseudo gameWinner non mis à jour', err); });
+
+    return true;
+  };
+
+  function viderCodeV97(){
+    try { codeVal = ''; } catch(e){}
+    try { activeCode = null; } catch(e){}
+    try { currentCode = null; } catch(e){}
+    try { isRetry = false; } catch(e){}
+    try { pendingLot = null; } catch(e){}
+    try { lastScore = null; } catch(e){}
+    try { gameState = 'idle'; } catch(e){}
+
+    try {
+      const err = document.getElementById('codeErr');
+      if(err) err.textContent = '';
+    } catch(e){}
+
+    try {
+      const pseudo = document.getElementById('pseudoIn');
+      if(pseudo) pseudo.value = '';
+    } catch(e){}
+
+    try { if(typeof renderCode === 'function') renderCode(); } catch(e){}
+
+    try {
+      document.querySelectorAll('#s-code .code-box').forEach(function(el){ el.textContent = ''; });
+    } catch(e){}
+  }
+
+  window.retourQrDemoV97 = function(event){
+    if(event){
+      event.preventDefault();
+      event.stopPropagation();
+      if(event.stopImmediatePropagation) event.stopImmediatePropagation();
+    }
+
+    // Verrou anti-rebond : la démo ne doit pas rouvrir le code immédiatement.
+    window.__lockDemoOpenCodeV97 = Date.now() + 1500;
+
+    viderCodeV97();
+
+    try { if(typeof startDemo === 'function') startDemo(); } catch(e){}
+    try { if(typeof go === 'function') go('s-demo'); } catch(e){}
+
+    setTimeout(function(){
+      viderCodeV97();
+      try { if(typeof go === 'function') go('s-demo'); } catch(e){}
+    }, 100);
+
+    return false;
+  };
+
+  // Si l'écran démo a un handler global qui ouvre le code, on bloque seulement pendant 1,5 sec après retour QR.
+  ['pointerdown','pointerup','touchstart','click'].forEach(function(evt){
+    document.addEventListener(evt, function(e){
+      const lock = window.__lockDemoOpenCodeV97 || 0;
       if(Date.now() > lock) return;
 
       const demo = document.getElementById('s-demo');

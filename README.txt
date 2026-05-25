@@ -1,10 +1,8 @@
-V9.6 — retour QR corrigé
+V9.7 — correction gain + retour démo
 
-Base : V9.5.
-Modification limitée :
-- corrige uniquement le bouton RETOUR AU JEU après QR
-- retour forcé vers la démo
-- ancien code vidé
-- blocage du rebond tactile pendant 1,2 seconde
+Base : V9.6/V9.5.
+Corrections limitées :
+- gain enregistré immédiatement au clic sur ENREGISTRER MON SCORE gagnant
+- mise à jour du pseudo ensuite si validé
+- bouton RETOUR AU JEU QR force la démo et bloque le rebond vers code
 - aucun changement visuel
-- aucun changement QR / chrono / code / 2e chance / gagnants
