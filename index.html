@@ -600,6 +600,37 @@ body::before{
   opacity:1!important;
 }
 
+
+/* === V11 CHRONO PLUS GROS + RETOUR DEMO === */
+#s-game .counter,
+.counter,
+#counter,
+#timeDisplay,
+.timer-display,
+.chrono-display{
+  font-size:clamp(118px,18vw,250px)!important;
+  line-height:.82!important;
+  letter-spacing:-8px!important;
+  text-shadow:
+    0 0 34px rgba(0,200,255,.72),
+    0 12px 32px rgba(0,0,0,.90),
+    0 0 60px rgba(255,215,0,.22)!important;
+}
+#s-game .arena{
+  transform:scale(1.06)!important;
+}
+#s-game .ring,
+#s-game .ring-bg{
+  min-width:min(74vw,820px)!important;
+  min-height:min(74vw,820px)!important;
+}
+#s-save .save-win-title{
+  font-size:clamp(48px,6vw,92px)!important;
+}
+#s-save .save-win-subtitle{
+  font-size:clamp(24px,3vw,44px)!important;
+}
+
 </style>
 </head>
 <body>
@@ -1452,12 +1483,35 @@ document.getElementById('btnLotterySkip').addEventListener('click',()=>{
 // ═══════════════════════════
 function showSave(){
   if(!lastScore)return;
+
+  // Sécurité : ne jamais afficher "GAGNÉ" pour une partie perdante.
+  // On autorise l'écran pseudo seulement si le jeu a explicitement marqué un gain.
+  const isWinning =
+    lastScore.win === true ||
+    lastScore.won === true ||
+    lastScore.isWin === true ||
+    lastScore.prize ||
+    lastScore.lot ||
+    window.currentPrize ||
+    window.currentGift ||
+    window.hasInstantWin === true;
+
+  if(!isWinning){
+    if(typeof showLottery === 'function') return showLottery();
+    if(typeof go === 'function') return go('s-lottery');
+    return;
+  }
+
   const diff=lastScore.score-TARGET;
-  document.getElementById('saveDisp').textContent=(lastScore.score/1000).toFixed(3)+'s  ('+fDiff(diff)+')';
-  document.getElementById('pseudoIn').value='';
-  document.getElementById('saveErr').textContent='';
+  const disp=document.getElementById('saveDisp');
+  if(disp) disp.textContent=(lastScore.score/1000).toFixed(3)+'s  ('+fDiff(diff)+')';
+  const input=document.getElementById('pseudoIn');
+  if(input) input.value='';
+  const err=document.getElementById('saveErr');
+  if(err) err.textContent='';
   go('s-save');
 }
+
 function renderLeader(today=true, hlP=null, hlS=0){
   document.getElementById('tabTd').classList.toggle('on',today);
   document.getElementById('tabAt').classList.toggle('on',!today);
@@ -1718,7 +1772,7 @@ go('s-demo');
   function normalizePseudo(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').slice(0,16)}
   function input(){return document.getElementById('pseudoIn')}
   function setPseudo(v){const i=input();if(!i)return;i.value=normalizePseudo(v);i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));const e=document.getElementById('saveErr');if(e)e.textContent=''}
-  function menu(){try{if(typeof go==='function')return go('s-code');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
+  function menu(){try{if(typeof go==='function')return go('s-demo');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
   async function save(){const i=input();if(!i)return;const pseudo=normalizePseudo(i.value);if(!pseudo){const e=document.getElementById('saveErr');if(e)e.textContent='Saisis ton pseudo';return}
     try{
       const original = document.querySelector('button.__originalSaveBtn');
@@ -1782,7 +1836,7 @@ go('s-demo');
       else if(action === 'reload') location.reload();
       else if(action === 'reset') {
         if(typeof resetGame === 'function') resetGame();
-        else if(typeof go === 'function') go('s-code');
+        else if(typeof go === 'function') go('s-demo');
         else location.reload();
       }
     }catch(e){
@@ -1797,6 +1851,66 @@ go('s-demo');
 
   setInterval(pollAdminScreen, 1200);
   setTimeout(pollAdminScreen, 500);
+})();
+</script>
+
+
+<script>
+/* === V11 retour démo + sécurité écran gagnant === */
+(function(){
+  function demo(){
+    try{
+      if(typeof go === 'function') return go('s-demo');
+      if(typeof showDemo === 'function') return showDemo();
+      if(typeof resetGame === 'function'){ resetGame(); setTimeout(()=>{try{go('s-demo')}catch(e){}},50); return; }
+    }catch(e){}
+    location.reload();
+  }
+
+  window.returnToGameMenuV8 = demo;
+  window.skipPseudoV8 = demo;
+
+  const oldSavePseudoV8 = window.savePseudoV8;
+  window.savePseudoV8 = async function(){
+    const input = document.getElementById('pseudoIn');
+    const pseudo = String(input?.value || '').trim();
+    if(!pseudo){
+      const err = document.getElementById('saveErr');
+      if(err) err.textContent = 'Saisis ton pseudo';
+      return;
+    }
+    try{
+      if(typeof oldSavePseudoV8 === 'function'){
+        await oldSavePseudoV8();
+      }
+    }catch(e){}
+    demo();
+  };
+
+  document.addEventListener('click', function(e){
+    const save = e.target.closest && e.target.closest('#btnSave');
+    const skip = e.target.closest && e.target.closest('#btnSkip');
+    const vkValidate = e.target.closest && e.target.closest('#pseudoKeyboard .vk-key[data-action="validate"]');
+
+    if(save || skip || vkValidate){
+      if(skip){
+        e.preventDefault();
+        e.stopPropagation();
+        return demo();
+      }
+      if(save || vkValidate){
+        const input = document.getElementById('pseudoIn');
+        if(!String(input?.value || '').trim()){
+          const err = document.getElementById('saveErr');
+          if(err) err.textContent = 'Saisis ton pseudo';
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        setTimeout(demo, 120);
+      }
+    }
+  }, true);
 })();
 </script>
 

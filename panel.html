@@ -184,15 +184,15 @@ body{max-width:700px;margin:0 auto;padding:20px 14px 60px;}
     
 <div class="card">
   <h2>🎮 Pilotage écran jeu</h2>
-  <p class="muted" style="margin:6px 0 12px">Envoie une commande au jeu ouvert sur la borne. Le jeu reçoit l’ordre sous 1 à 2 secondes.</p>
+  <p class="muted" style="margin:6px 0 12px">Envoie une commande au jeu ouvert sur la borne. Le jeu reçoit l’ordre sous 1 à 2 secondes. Ne pas utiliser “Écran gagnant” pour une partie perdue.</p>
   <div class="screen-control-grid">
     <button type="button" class="b p" onclick="sendScreenCommand('code')">Écran code</button>
     <button type="button" class="b" onclick="sendScreenCommand('game')">Écran chrono</button>
     <button type="button" class="b" onclick="sendScreenCommand('lottery')">QR perdant</button>
-    <button type="button" class="b" onclick="sendScreenCommand('winner')">Écran gagnant</button>
+    <button type="button" class="b" onclick="sendScreenCommand('winner')">Écran gagnant réel</button>
     <button type="button" class="b" onclick="sendScreenCommand('demo')">Démo</button>
     <button type="button" class="b" onclick="sendScreenCommand('result')">Résultat</button>
-    <button type="button" class="b d" onclick="sendScreenCommand('reset')">Retour menu</button>
+    <button type="button" class="b d" onclick="sendScreenCommand('reset')">Retour démo</button>
     <button type="button" class="b d" onclick="sendScreenCommand('reload')">Recharger jeu</button>
   </div>
 </div>
