@@ -601,34 +601,118 @@ body::before{
 }
 
 
-/* === V11 CHRONO PLUS GROS + RETOUR DEMO === */
-#s-game .counter,
-.counter,
-#counter,
-#timeDisplay,
-.timer-display,
-.chrono-display{
-  font-size:clamp(118px,18vw,250px)!important;
-  line-height:.82!important;
-  letter-spacing:-8px!important;
-  text-shadow:
-    0 0 34px rgba(0,200,255,.72),
-    0 12px 32px rgba(0,0,0,.90),
-    0 0 60px rgba(255,215,0,.22)!important;
+/* === V9.1 AJOUT RETOUR AU JEU APRES QR === */
+#s-lottery .lottery-actions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:12px!important;
 }
-#s-game .arena{
-  transform:scale(1.06)!important;
+#s-lottery #btnLotterySkip{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:min(360px,86vw)!important;
+  height:56px!important;
+  border-radius:999px!important;
+  border:1.5px solid rgba(255,255,255,.22)!important;
+  background:rgba(255,255,255,.10)!important;
+  color:#fff!important;
+  font-family:'Bebas Neue',cursive!important;
+  font-size:clamp(20px,2.5vw,30px)!important;
+  letter-spacing:2px!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
 }
-#s-game .ring,
-#s-game .ring-bg{
-  min-width:min(74vw,820px)!important;
-  min-height:min(74vw,820px)!important;
+#s-lottery #btnLotterySkip:active{
+  transform:scale(.96)!important;
 }
-#s-save .save-win-title{
-  font-size:clamp(48px,6vw,92px)!important;
+
+
+/* === V9.2 QR NON CLIQUABLE + TEXTES CENTRES === */
+#s-lottery{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  padding:24px!important;
 }
-#s-save .save-win-subtitle{
-  font-size:clamp(24px,3vw,44px)!important;
+#s-lottery .lottery-card{
+  width:min(620px,94vw)!important;
+  max-height:90vh!important;
+  margin:auto!important;
+  padding:18px 24px 20px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  text-align:center!important;
+}
+#s-lottery .lottery-kicker,
+#s-lottery .lottery-title,
+#s-lottery .lottery-score,
+#s-lottery .lottery-text,
+#s-lottery .lottery-prize{
+  width:100%!important;
+  max-width:560px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#s-lottery .lottery-title{
+  font-size:clamp(32px,5vw,56px)!important;
+  line-height:.94!important;
+}
+#s-lottery .lottery-text{
+  line-height:1.45!important;
+  font-weight:800!important;
+}
+#s-lottery .lottery-prize{
+  line-height:1!important;
+}
+#s-lottery .qr-box{
+  width:min(245px,44vh,66vw)!important;
+  display:block!important;
+  pointer-events:none!important;
+  cursor:default!important;
+  margin:2px auto!important;
+}
+#s-lottery .qr-box img{
+  display:block!important;
+  margin:auto!important;
+}
+#s-lottery .lottery-actions{
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  margin-top:4px!important;
+}
+#s-lottery #btnLotterySkip{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:min(360px,86vw)!important;
+  height:56px!important;
+  border-radius:999px!important;
+  border:1.5px solid rgba(255,255,255,.22)!important;
+  background:rgba(255,255,255,.12)!important;
+  color:#fff!important;
+  font-family:'Bebas Neue',cursive!important;
+  font-size:clamp(22px,2.5vw,32px)!important;
+  letter-spacing:2px!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  text-align:center!important;
+}
+#s-lottery #btnLotterySkip:active{
+  transform:scale(.96)!important;
 }
 
 </style>
@@ -721,12 +805,12 @@ body::before{
     <div class="lottery-score" id="lotteryScore"></div>
     <div class="lottery-text" id="lotteryText">Scanne le QR code pour participer au tirage hebdomadaire.</div>
     <div class="lottery-prize" id="lotteryPrize">Bon d'achat hebdo 20€</div>
-    <a class="qr-box" id="lotteryQrLink" href="#" target="_blank" rel="noopener noreferrer">
+    <div class="qr-box" id="lotteryQrLink" role="img" aria-label="QR code formulaire">
       <img id="lotteryQrImg" alt="QR code formulaire de participation">
-    </a>
+    </div>
     <div class="lottery-actions">
       <button class="bmain start" id="btnLotterySave">ENREGISTRER MON SCORE</button>
-      <button class="bplain" id="btnLotterySkip">CELA NE M'INTÉRESSE PAS</button>
+      <button class="bplain" id="btnLotterySkip">RETOUR AU JEU</button>
     </div>
   </div>
 </div>
@@ -1468,7 +1552,7 @@ function showLottery(){
   document.getElementById('lotteryText').textContent = cfg.text;
   document.getElementById('lotteryPrize').textContent = cfg.prize;
   document.getElementById('lotteryScore').textContent = 'Ton temps : ' + (lastScore.score/1000).toFixed(3) + 's  (' + fDiff(diff) + ')';
-  document.getElementById('lotteryQrLink').href = cfg.url || '#';
+  /* QR non cliquable en local */
   document.getElementById('lotteryQrImg').src = qrUrlFor(cfg.url);
   go('s-lottery');
 }
@@ -1483,35 +1567,12 @@ document.getElementById('btnLotterySkip').addEventListener('click',()=>{
 // ═══════════════════════════
 function showSave(){
   if(!lastScore)return;
-
-  // Sécurité : ne jamais afficher "GAGNÉ" pour une partie perdante.
-  // On autorise l'écran pseudo seulement si le jeu a explicitement marqué un gain.
-  const isWinning =
-    lastScore.win === true ||
-    lastScore.won === true ||
-    lastScore.isWin === true ||
-    lastScore.prize ||
-    lastScore.lot ||
-    window.currentPrize ||
-    window.currentGift ||
-    window.hasInstantWin === true;
-
-  if(!isWinning){
-    if(typeof showLottery === 'function') return showLottery();
-    if(typeof go === 'function') return go('s-lottery');
-    return;
-  }
-
   const diff=lastScore.score-TARGET;
-  const disp=document.getElementById('saveDisp');
-  if(disp) disp.textContent=(lastScore.score/1000).toFixed(3)+'s  ('+fDiff(diff)+')';
-  const input=document.getElementById('pseudoIn');
-  if(input) input.value='';
-  const err=document.getElementById('saveErr');
-  if(err) err.textContent='';
+  document.getElementById('saveDisp').textContent=(lastScore.score/1000).toFixed(3)+'s  ('+fDiff(diff)+')';
+  document.getElementById('pseudoIn').value='';
+  document.getElementById('saveErr').textContent='';
   go('s-save');
 }
-
 function renderLeader(today=true, hlP=null, hlS=0){
   document.getElementById('tabTd').classList.toggle('on',today);
   document.getElementById('tabAt').classList.toggle('on',!today);
@@ -1772,7 +1833,7 @@ go('s-demo');
   function normalizePseudo(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').slice(0,16)}
   function input(){return document.getElementById('pseudoIn')}
   function setPseudo(v){const i=input();if(!i)return;i.value=normalizePseudo(v);i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));const e=document.getElementById('saveErr');if(e)e.textContent=''}
-  function menu(){try{if(typeof go==='function')return go('s-demo');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
+  function menu(){try{if(typeof go==='function')return go('s-code');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
   async function save(){const i=input();if(!i)return;const pseudo=normalizePseudo(i.value);if(!pseudo){const e=document.getElementById('saveErr');if(e)e.textContent='Saisis ton pseudo';return}
     try{
       const original = document.querySelector('button.__originalSaveBtn');
@@ -1791,124 +1852,89 @@ go('s-demo');
 
 
 <script>
-/* === V10 pilotage écran depuis admin === */
+/* === V9.1 retour QR vers démo propre === */
 (function(){
-  const FB_SCREEN_URL = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app/adminScreenCommand.json';
-  let lastAdminScreenCommandId = localStorage.getItem('lastAdminScreenCommandId') || '';
+  function retourJeuDepuisQr(){
+    try { if (typeof clearTimeout === 'function' && typeof _leadTimer !== 'undefined') clearTimeout(_leadTimer); } catch(e) {}
+    try { if (typeof clearTimeout === 'function' && typeof idleTimer !== 'undefined') clearTimeout(idleTimer); } catch(e) {}
+    try { if (typeof cancelAnimationFrame === 'function' && typeof rafId !== 'undefined') cancelAnimationFrame(rafId); } catch(e) {}
+    try { if (typeof cancelAnimationFrame === 'function' && typeof raf !== 'undefined') cancelAnimationFrame(raf); } catch(e) {}
 
-  async function getScreenCommand(){
-    try{
-      const r = await fetch(FB_SCREEN_URL + '?t=' + Date.now(), {cache:'no-store'});
-      if(!r.ok) return null;
-      return await r.json();
-    }catch(e){ return null; }
-  }
+    try { gameState = 'idle'; } catch(e) {}
+    try { activeCode = null; } catch(e) {}
+    try { codeVal = ''; } catch(e) {}
+    try { isRetry = false; } catch(e) {}
+    try { pendingLot = null; } catch(e) {}
+    try { lastScore = null; } catch(e) {}
 
-  function safeGo(screenId){
-    try{
-      if(typeof go === 'function') {
-        go(screenId);
-        return true;
-      }
-    }catch(e){}
-    return false;
-  }
+    try {
+      const codeErr = document.getElementById('codeErr');
+      if(codeErr) codeErr.textContent = '';
+    } catch(e) {}
 
-  function executeAdminScreenCommand(cmd){
-    if(!cmd || !cmd.id || cmd.id === lastAdminScreenCommandId) return;
-    lastAdminScreenCommandId = cmd.id;
-    localStorage.setItem('lastAdminScreenCommandId', cmd.id);
+    try {
+      if (typeof renderCode === 'function') renderCode();
+    } catch(e) {}
 
-    const action = cmd.action || '';
-    try{
-      if(action === 'code') safeGo('s-code');
-      else if(action === 'game') safeGo('s-game');
-      else if(action === 'lottery') {
-        if(typeof showLottery === 'function') showLottery();
-        else safeGo('s-lottery');
-      }
-      else if(action === 'winner') {
-        if(typeof showSave === 'function') showSave();
-        else safeGo('s-save');
-      }
-      else if(action === 'demo') safeGo('s-demo');
-      else if(action === 'result') safeGo('s-result');
-      else if(action === 'reload') location.reload();
-      else if(action === 'reset') {
-        if(typeof resetGame === 'function') resetGame();
-        else if(typeof go === 'function') go('s-demo');
-        else location.reload();
-      }
-    }catch(e){
-      console.warn('Commande écran admin impossible', e);
+    try {
+      if (typeof startDemo === 'function') startDemo();
+    } catch(e) {}
+
+    try {
+      if (typeof go === 'function') go('s-demo');
+      else location.reload();
+    } catch(e) {
+      location.reload();
     }
   }
 
-  async function pollAdminScreen(){
-    const cmd = await getScreenCommand();
-    executeAdminScreenCommand(cmd);
-  }
-
-  setInterval(pollAdminScreen, 1200);
-  setTimeout(pollAdminScreen, 500);
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest && e.target.closest('#btnLotterySkip');
+    if(!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    retourJeuDepuisQr();
+  }, true);
 })();
 </script>
 
 
 <script>
-/* === V11 retour démo + sécurité écran gagnant === */
+/* === V9.2 QR local non cliquable + retour jeu === */
 (function(){
-  function demo(){
-    try{
-      if(typeof go === 'function') return go('s-demo');
-      if(typeof showDemo === 'function') return showDemo();
-      if(typeof resetGame === 'function'){ resetGame(); setTimeout(()=>{try{go('s-demo')}catch(e){}},50); return; }
-    }catch(e){}
-    location.reload();
+  function retourJeuDepuisQrV92(){
+    try { if (typeof clearTimeout === 'function' && typeof _leadTimer !== 'undefined') clearTimeout(_leadTimer); } catch(e) {}
+    try { if (typeof clearTimeout === 'function' && typeof idleTimer !== 'undefined') clearTimeout(idleTimer); } catch(e) {}
+    try { gameState = 'idle'; } catch(e) {}
+    try { activeCode = null; } catch(e) {}
+    try { codeVal = ''; } catch(e) {}
+    try { isRetry = false; } catch(e) {}
+    try { pendingLot = null; } catch(e) {}
+    try { lastScore = null; } catch(e) {}
+    try { if (typeof renderCode === 'function') renderCode(); } catch(e) {}
+    try { if (typeof startDemo === 'function') startDemo(); } catch(e) {}
+    try { if (typeof go === 'function') go('s-demo'); else location.reload(); } catch(e) { location.reload(); }
   }
 
-  window.returnToGameMenuV8 = demo;
-  window.skipPseudoV8 = demo;
-
-  const oldSavePseudoV8 = window.savePseudoV8;
-  window.savePseudoV8 = async function(){
-    const input = document.getElementById('pseudoIn');
-    const pseudo = String(input?.value || '').trim();
-    if(!pseudo){
-      const err = document.getElementById('saveErr');
-      if(err) err.textContent = 'Saisis ton pseudo';
-      return;
-    }
-    try{
-      if(typeof oldSavePseudoV8 === 'function'){
-        await oldSavePseudoV8();
-      }
-    }catch(e){}
-    demo();
-  };
-
   document.addEventListener('click', function(e){
-    const save = e.target.closest && e.target.closest('#btnSave');
-    const skip = e.target.closest && e.target.closest('#btnSkip');
-    const vkValidate = e.target.closest && e.target.closest('#pseudoKeyboard .vk-key[data-action="validate"]');
+    if(e.target.closest && e.target.closest('#lotteryQrLink')){
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    if(e.target.closest && e.target.closest('#btnLotterySkip')){
+      e.preventDefault();
+      e.stopPropagation();
+      retourJeuDepuisQrV92();
+      return false;
+    }
+  }, true);
 
-    if(save || skip || vkValidate){
-      if(skip){
-        e.preventDefault();
-        e.stopPropagation();
-        return demo();
-      }
-      if(save || vkValidate){
-        const input = document.getElementById('pseudoIn');
-        if(!String(input?.value || '').trim()){
-          const err = document.getElementById('saveErr');
-          if(err) err.textContent = 'Saisis ton pseudo';
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        setTimeout(demo, 120);
-      }
+  document.addEventListener('pointerup', function(e){
+    if(e.target.closest && e.target.closest('#lotteryQrLink')){
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
     }
   }, true);
 })();

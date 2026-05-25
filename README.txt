@@ -1,5 +1,14 @@
-V11 :
-- chrono plus gros
-- retour après pseudo/pass = démo
-- sécurité : ne pas afficher GAGNÉ si la partie est perdue
-- base récente avec pilotage admin
+V9.2 — QR non cliquable + retour jeu
+
+Base : V9/V9.1.
+Corrections limitées :
+- QR affiché mais non cliquable dans le jeu local
+- Texte au-dessus et en-dessous du QR recentré
+- Bouton RETOUR AU JEU visible
+- Retour propre à la démo depuis le QR
+
+Upload :
+index.html
+panel.html
+gestion.html
+README.txt
