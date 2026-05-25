@@ -1,14 +1,10 @@
-V9.3 — correctif gagnants uniquement
+V9.6 — retour QR corrigé
 
-Base : V9.2 validée.
+Base : V9.5.
 Modification limitée :
-- ajoute l'enregistrement des gagnants dans /winners
-- ne touche pas au QR
-- ne touche pas au moteur code / chrono / 2e chance
-- ne touche pas au visuel
-
-Upload :
-index.html
-panel.html
-gestion.html
-README.txt
+- corrige uniquement le bouton RETOUR AU JEU après QR
+- retour forcé vers la démo
+- ancien code vidé
+- blocage du rebond tactile pendant 1,2 seconde
+- aucun changement visuel
+- aucun changement QR / chrono / code / 2e chance / gagnants

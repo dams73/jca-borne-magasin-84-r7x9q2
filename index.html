@@ -1941,82 +1941,106 @@ go('s-demo');
 </script>
 
 
+
+
 <script>
-/* === V9.3 correctif enregistrement gagnants uniquement === */
+/* === V9.5 correctif gagnant immédiat uniquement === */
 (function(){
-  function safeText(id){
+  const FB_BASE = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+  let winPayloadV95 = null;
+
+  function text(id){
     const el = document.getElementById(id);
     return el ? String(el.textContent || '').trim() : '';
   }
 
-  function safeValue(id){
+  function value(id){
     const el = document.getElementById(id);
     return el ? String(el.value || '').trim() : '';
   }
 
   function getPseudo(){
-    return safeValue('pseudoIn') || safeValue('pseudo') || safeValue('pseudoInput') || 'JOUEUR';
+    return value('pseudoIn') || value('pseudo') || value('pseudoInput') || '';
   }
 
-  function looksLikeWinner(){
-    try {
-      if (typeof pendingLot !== 'undefined' && pendingLot) return true;
-      if (typeof currentLot !== 'undefined' && currentLot) return true;
-      if (typeof wonLot !== 'undefined' && wonLot) return true;
-      if (typeof lastScore !== 'undefined' && lastScore && (lastScore.prize || lastScore.lot || lastScore.win === true || lastScore.isWin === true)) return true;
-    } catch(e) {}
-
-    const visibleWon = document.getElementById('s-won');
-    if (visibleWon && !visibleWon.classList.contains('hidden')) return true;
-
-    const title = safeText('wonTitle') + ' ' + safeText('wonLotName') + ' ' + safeText('wonLotDesc');
-    return /félicit|gagn|lot|cadeau|bon/i.test(title);
+  function getCode(){
+    try { if(typeof activeCode !== 'undefined' && activeCode) return String(activeCode); } catch(e){}
+    try { if(typeof currentCode !== 'undefined' && currentCode) return String(currentCode); } catch(e){}
+    try { if(typeof codeVal !== 'undefined' && codeVal) return String(codeVal); } catch(e){}
+    return '';
   }
 
-  function getWinnerPayload(){
-    let payload = {};
-    try {
-      if (typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object') {
-        payload = Object.assign({}, lastScore);
-      }
-    } catch(e) {}
-
-    const pseudo = getPseudo();
-    const now = Date.now();
-
+  function getLot(){
     let lot = '';
+
     try {
-      if (typeof pendingLot !== 'undefined' && pendingLot) {
-        lot = pendingLot.name || pendingLot.title || pendingLot.label || pendingLot.lot || pendingLot.prize || String(pendingLot);
+      if(typeof pendingLot !== 'undefined' && pendingLot){
+        if(typeof pendingLot === 'string') lot = pendingLot;
+        else lot = pendingLot.name || pendingLot.title || pendingLot.label || pendingLot.lot || pendingLot.prize || '';
       }
-    } catch(e) {}
-
-    lot = lot || safeText('wonLotName') || safeText('wonLotDesc') || payload.lot || payload.prize || 'Lot gagné';
-
-    payload.pseudo = pseudo;
-    payload.lot = lot;
-    payload.prize = payload.prize || lot;
-    payload.isWinner = true;
-    payload.win = true;
-    payload.createdAt = payload.createdAt || now;
-    payload.savedAt = now;
+    } catch(e){}
 
     try {
-      if (typeof activeCode !== 'undefined' && activeCode) payload.code = activeCode;
-    } catch(e) {}
+      if(!lot && typeof currentLot !== 'undefined' && currentLot){
+        if(typeof currentLot === 'string') lot = currentLot;
+        else lot = currentLot.name || currentLot.title || currentLot.label || currentLot.lot || currentLot.prize || '';
+      }
+    } catch(e){}
 
+    return lot || text('wonLotName') || text('wonLotDesc') || text('wonTitle') || 'Lot gagné';
+  }
+
+  function getScoreData(){
+    const data = {};
+    try {
+      if(typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object') {
+        Object.assign(data, lastScore);
+      }
+    } catch(e){}
+
+    data.displayScore = data.displayScore || text('wonScore') || text('saveDisp') || text('lotteryScore') || '';
+
+    try { if(typeof TARGET !== 'undefined') data.target = TARGET; } catch(e){}
+    try { if(typeof gameState !== 'undefined') data.gameState = gameState; } catch(e){}
+
+    return data;
+  }
+
+  function buildWinnerPayload(stage){
+    const lot = getLot();
+    const pseudo = getPseudo();
+
+    const payload = Object.assign({}, getScoreData(), {
+      pseudo: pseudo || 'À RENSEIGNER',
+      lot: lot,
+      prize: lot,
+      code: getCode(),
+      isWinner: true,
+      win: true,
+      stage: stage,
+      createdAt: Date.now(),
+      savedAt: Date.now()
+    });
+
+    // Stable id to update same winner if pseudo arrives later
+    const code = payload.code || 'no-code';
+    const scorePart = payload.score || payload.diff || payload.displayScore || Date.now();
+    payload.winnerId = code + '-' + String(scorePart).replace(/[^a-zA-Z0-9_-]/g,'');
     return payload;
   }
 
-  async function pushFirebase(path, data){
-    const baseUrl =
-      (typeof FB_URL !== 'undefined' && FB_URL) ||
-      (typeof FIREBASE_URL !== 'undefined' && FIREBASE_URL) ||
-      (typeof firebaseUrl !== 'undefined' && firebaseUrl) ||
-      'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+  async function put(path, data){
+    const r = await fetch(FB_BASE + path + '.json', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase PUT '+path+' '+r.status);
+    return await r.json();
+  }
 
-    const url = baseUrl.replace(/\/$/, '') + path + '.json';
-    const r = await fetch(url, {
+  async function post(path, data){
+    const r = await fetch(FB_BASE + path + '.json', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(data)
@@ -2025,44 +2049,173 @@ go('s-demo');
     return await r.json();
   }
 
-  async function saveWinnerIfNeeded(){
-    if(!looksLikeWinner()) return;
-    const payload = getWinnerPayload();
+  async function saveWinnerNow(stage){
+    const payload = buildWinnerPayload(stage);
+    winPayloadV95 = payload;
 
-    // Anti double-clic court : évite 2 enregistrements identiques sur le même bouton.
-    const key = 'winner-save-' + (payload.code || '') + '-' + payload.pseudo + '-' + (payload.score || payload.time || '');
-    const last = sessionStorage.getItem('lastWinnerSaveKey');
-    if(last === key) return;
-    sessionStorage.setItem('lastWinnerSaveKey', key);
+    try { sessionStorage.setItem('winPayloadV95', JSON.stringify(payload)); } catch(e){}
 
-    try {
-      await pushFirebase('/winners', payload);
-    } catch(e) {
-      console.warn('Erreur enregistrement winner', e);
-      sessionStorage.removeItem('lastWinnerSaveKey');
-    }
+    const id = payload.winnerId || ('winner-' + Date.now());
+
+    // 1) Main path for admin winner lists
+    await put('/winners/' + id, payload);
+
+    // 2) Compatibility path in case admin reads another bucket
+    await put('/gameWinners/' + id, payload);
+
+    // 3) Event log, harmless if not used
+    try { await post('/winnerEvents', Object.assign({}, payload, {eventStage: stage})); } catch(e){}
+
+    return payload;
   }
 
-  // On laisse le code original enregistrer le score, on ajoute juste l'enregistrement gagnant.
-  document.addEventListener('click', function(e){
-    const btn = e.target && e.target.closest && e.target.closest('#btnSave, #btnWonNext, .bval');
-    if(!btn) return;
+  async function updateWinnerWithPseudo(){
+    let payload = winPayloadV95;
+    if(!payload){
+      try {
+        const raw = sessionStorage.getItem('winPayloadV95');
+        if(raw) payload = JSON.parse(raw);
+      } catch(e){}
+    }
+    if(!payload) return;
 
-    setTimeout(function(){
-      saveWinnerIfNeeded();
-    }, 80);
+    const pseudo = getPseudo();
+    if(pseudo) payload.pseudo = pseudo;
+    payload.stage = 'pseudo_validated';
+    payload.savedAt = Date.now();
+
+    const id = payload.winnerId || ('winner-' + Date.now());
+    await put('/winners/' + id, payload);
+    await put('/gameWinners/' + id, payload);
+    try { await post('/winnerEvents', Object.assign({}, payload, {eventStage:'pseudo_validated'})); } catch(e){}
+  }
+
+  // Immediate save: this is the important correction.
+  document.addEventListener('click', function(e){
+    const wonNext = e.target && e.target.closest && e.target.closest('#btnWonNext');
+    if(!wonNext) return;
+
+    saveWinnerNow('won_next_clicked').catch(function(err){
+      console.warn('V9.5 gagnant non enregistré au clic lot', err);
+      alert("Attention : le gain n'a pas pu être enregistré. Vérifie la connexion internet.");
+    });
   }, true);
 
-  // Sécurité supplémentaire : si la fonction saveScore existe, on l'enveloppe sans casser son comportement.
-  if (typeof window.saveScore === 'function' && !window.saveScore.__winnerPatchV93) {
-    const originalSaveScore = window.saveScore;
-    window.saveScore = async function(){
-      const res = await originalSaveScore.apply(this, arguments);
-      await saveWinnerIfNeeded();
-      return res;
-    };
-    window.saveScore.__winnerPatchV93 = true;
+  // Update with pseudo later if the user validates the score.
+  document.addEventListener('click', function(e){
+    const saveBtn = e.target && e.target.closest && e.target.closest('#btnSave, .bval, #pseudoKeyboard .vk-key[data-action="validate"]');
+    if(!saveBtn) return;
+
+    setTimeout(function(){
+      updateWinnerWithPseudo().catch(function(err){
+        console.warn('V9.5 gagnant non mis à jour avec pseudo', err);
+      });
+    }, 80);
+  }, true);
+})();
+</script>
+
+
+<script>
+/* === V9.6 correctif retour QR vers démo sans rebond code === */
+(function(){
+  let qrReturnLockUntil = 0;
+
+  function clearCodeDisplayV96(){
+    try { codeVal = ''; } catch(e) {}
+    try { activeCode = null; } catch(e) {}
+    try { currentCode = null; } catch(e) {}
+    try { isRetry = false; } catch(e) {}
+    try { pendingLot = null; } catch(e) {}
+    try { lastScore = null; } catch(e) {}
+    try { gameState = 'idle'; } catch(e) {}
+
+    try {
+      const err = document.getElementById('codeErr');
+      if(err) err.textContent = '';
+    } catch(e) {}
+
+    try {
+      const pseudo = document.getElementById('pseudoIn');
+      if(pseudo) pseudo.value = '';
+    } catch(e) {}
+
+    try {
+      if(typeof renderCode === 'function') renderCode();
+    } catch(e) {}
+
+    // Sécurité visuelle si renderCode ne vide pas les cases.
+    try {
+      document.querySelectorAll('#codeBoxes .code-box, .code-box').forEach(el => {
+        if(el && el.closest && el.closest('#s-code')) el.textContent = '';
+      });
+    } catch(e) {}
   }
+
+  function forceDemoV96(){
+    qrReturnLockUntil = Date.now() + 1200;
+    window.__qrReturnLockUntilV96 = qrReturnLockUntil;
+
+    clearCodeDisplayV96();
+
+    try {
+      if(typeof startDemo === 'function') startDemo();
+    } catch(e) {}
+
+    try {
+      if(typeof go === 'function') go('s-demo');
+    } catch(e) {}
+
+    // Double sécurité après le rendu, pour contrer un autre handler qui renverrait vers le code.
+    setTimeout(function(){
+      clearCodeDisplayV96();
+      try {
+        const demo = document.getElementById('s-demo');
+        const code = document.getElementById('s-code');
+        if(demo && code && !demo.classList.contains('hidden')) {
+          code.classList.add('hidden');
+        }
+      } catch(e) {}
+      try {
+        if(typeof go === 'function') go('s-demo');
+      } catch(e) {}
+    }, 80);
+
+    setTimeout(function(){
+      clearCodeDisplayV96();
+    }, 400);
+  }
+
+  // Empêche le clic/tactile de retour QR de rebondir immédiatement sur l'écran démo puis d'ouvrir le code.
+  ['pointerdown','pointerup','touchstart','click'].forEach(function(evt){
+    document.addEventListener(evt, function(e){
+      const btn = e.target && e.target.closest && e.target.closest('#btnLotterySkip');
+      if(!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      forceDemoV96();
+      return false;
+    }, true);
+  });
+
+  // Pendant 1,2s après retour QR, la démo ignore tout toucher.
+  ['pointerdown','pointerup','touchstart','click'].forEach(function(evt){
+    document.addEventListener(evt, function(e){
+      const lock = window.__qrReturnLockUntilV96 || qrReturnLockUntil || 0;
+      if(Date.now() > lock) return;
+
+      const demo = document.getElementById('s-demo');
+      if(demo && !demo.classList.contains('hidden') && e.target && (e.target === demo || demo.contains(e.target))){
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return false;
+      }
+    }, true);
+  });
 })();
 </script>
 
