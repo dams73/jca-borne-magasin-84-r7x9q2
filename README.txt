@@ -1,11 +1,11 @@
-V9.2 — QR non cliquable + retour jeu
+V9.3 — correctif gagnants uniquement
 
-Base : V9/V9.1.
-Corrections limitées :
-- QR affiché mais non cliquable dans le jeu local
-- Texte au-dessus et en-dessous du QR recentré
-- Bouton RETOUR AU JEU visible
-- Retour propre à la démo depuis le QR
+Base : V9.2 validée.
+Modification limitée :
+- ajoute l'enregistrement des gagnants dans /winners
+- ne touche pas au QR
+- ne touche pas au moteur code / chrono / 2e chance
+- ne touche pas au visuel
 
 Upload :
 index.html

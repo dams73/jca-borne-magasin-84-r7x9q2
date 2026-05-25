@@ -1940,5 +1940,131 @@ go('s-demo');
 })();
 </script>
 
+
+<script>
+/* === V9.3 correctif enregistrement gagnants uniquement === */
+(function(){
+  function safeText(id){
+    const el = document.getElementById(id);
+    return el ? String(el.textContent || '').trim() : '';
+  }
+
+  function safeValue(id){
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function getPseudo(){
+    return safeValue('pseudoIn') || safeValue('pseudo') || safeValue('pseudoInput') || 'JOUEUR';
+  }
+
+  function looksLikeWinner(){
+    try {
+      if (typeof pendingLot !== 'undefined' && pendingLot) return true;
+      if (typeof currentLot !== 'undefined' && currentLot) return true;
+      if (typeof wonLot !== 'undefined' && wonLot) return true;
+      if (typeof lastScore !== 'undefined' && lastScore && (lastScore.prize || lastScore.lot || lastScore.win === true || lastScore.isWin === true)) return true;
+    } catch(e) {}
+
+    const visibleWon = document.getElementById('s-won');
+    if (visibleWon && !visibleWon.classList.contains('hidden')) return true;
+
+    const title = safeText('wonTitle') + ' ' + safeText('wonLotName') + ' ' + safeText('wonLotDesc');
+    return /félicit|gagn|lot|cadeau|bon/i.test(title);
+  }
+
+  function getWinnerPayload(){
+    let payload = {};
+    try {
+      if (typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object') {
+        payload = Object.assign({}, lastScore);
+      }
+    } catch(e) {}
+
+    const pseudo = getPseudo();
+    const now = Date.now();
+
+    let lot = '';
+    try {
+      if (typeof pendingLot !== 'undefined' && pendingLot) {
+        lot = pendingLot.name || pendingLot.title || pendingLot.label || pendingLot.lot || pendingLot.prize || String(pendingLot);
+      }
+    } catch(e) {}
+
+    lot = lot || safeText('wonLotName') || safeText('wonLotDesc') || payload.lot || payload.prize || 'Lot gagné';
+
+    payload.pseudo = pseudo;
+    payload.lot = lot;
+    payload.prize = payload.prize || lot;
+    payload.isWinner = true;
+    payload.win = true;
+    payload.createdAt = payload.createdAt || now;
+    payload.savedAt = now;
+
+    try {
+      if (typeof activeCode !== 'undefined' && activeCode) payload.code = activeCode;
+    } catch(e) {}
+
+    return payload;
+  }
+
+  async function pushFirebase(path, data){
+    const baseUrl =
+      (typeof FB_URL !== 'undefined' && FB_URL) ||
+      (typeof FIREBASE_URL !== 'undefined' && FIREBASE_URL) ||
+      (typeof firebaseUrl !== 'undefined' && firebaseUrl) ||
+      'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+
+    const url = baseUrl.replace(/\/$/, '') + path + '.json';
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase POST '+path+' '+r.status);
+    return await r.json();
+  }
+
+  async function saveWinnerIfNeeded(){
+    if(!looksLikeWinner()) return;
+    const payload = getWinnerPayload();
+
+    // Anti double-clic court : évite 2 enregistrements identiques sur le même bouton.
+    const key = 'winner-save-' + (payload.code || '') + '-' + payload.pseudo + '-' + (payload.score || payload.time || '');
+    const last = sessionStorage.getItem('lastWinnerSaveKey');
+    if(last === key) return;
+    sessionStorage.setItem('lastWinnerSaveKey', key);
+
+    try {
+      await pushFirebase('/winners', payload);
+    } catch(e) {
+      console.warn('Erreur enregistrement winner', e);
+      sessionStorage.removeItem('lastWinnerSaveKey');
+    }
+  }
+
+  // On laisse le code original enregistrer le score, on ajoute juste l'enregistrement gagnant.
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest && e.target.closest('#btnSave, #btnWonNext, .bval');
+    if(!btn) return;
+
+    setTimeout(function(){
+      saveWinnerIfNeeded();
+    }, 80);
+  }, true);
+
+  // Sécurité supplémentaire : si la fonction saveScore existe, on l'enveloppe sans casser son comportement.
+  if (typeof window.saveScore === 'function' && !window.saveScore.__winnerPatchV93) {
+    const originalSaveScore = window.saveScore;
+    window.saveScore = async function(){
+      const res = await originalSaveScore.apply(this, arguments);
+      await saveWinnerIfNeeded();
+      return res;
+    };
+    window.saveScore.__winnerPatchV93 = true;
+  }
+})();
+</script>
+
 </body>
 </html>
