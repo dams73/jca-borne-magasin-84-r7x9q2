@@ -1,9 +1,9 @@
-V9.9 — corrections limitées
+V9.17 — admin propre
 
-Base : V9.8 validée.
-Corrections :
-- Masque le titre GAGNÉ ! sur l'écran pseudo.
-- Corrige le classement démo qui répétait les mêmes joueurs.
-- Évite plusieurs timers de démo superposés.
-- Retire le bloc pilotage écran de jeu dans l'admin.
-- Aucun changement QR / chrono / code / retour / gain.
+Base jeu : V9.15 validée.
+Admin reconstruit proprement :
+- Fiche codes vendeurs 200 codes.
+- Liste gagnants.
+- Suppression pilotage écran.
+- Correction bug texte brut en bas de page.
+- Aucun changement côté jeu.

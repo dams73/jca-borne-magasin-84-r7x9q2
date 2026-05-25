@@ -1839,7 +1839,7 @@ go('s-demo');
   function normalizePseudo(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').slice(0,16)}
   function input(){return document.getElementById('pseudoIn')}
   function setPseudo(v){const i=input();if(!i)return;i.value=normalizePseudo(v);i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));const e=document.getElementById('saveErr');if(e)e.textContent=''}
-  function menu(){try{if(typeof go==='function')return go('s-code');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
+  async function menu(){try{if(typeof forcePseudoUpdateV915==='function')await forcePseudoUpdateV915();if(typeof cleanReturnDemoV915==='function')return cleanReturnDemoV915();if(typeof go==='function')return go('s-demo');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
   async function save(){const i=input();if(!i)return;const pseudo=normalizePseudo(i.value);if(!pseudo){const e=document.getElementById('saveErr');if(e)e.textContent='Saisis ton pseudo';return}
     try{
       const original = document.querySelector('button.__originalSaveBtn');
@@ -2513,6 +2513,176 @@ go('s-demo');
       return oldStartDemo.apply(this, arguments);
     };
   }
+})();
+</script>
+
+
+<script>
+/* === V9.15 RAZ propre + pseudo gagnant sans casser QR/code === */
+(function(){
+  const FB_BASE_V915 = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+
+  function valueV915(id){
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  async function patchV915(path, data){
+    const r = await fetch(FB_BASE_V915 + path + '.json', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase PATCH ' + path + ' ' + r.status);
+    return await r.json();
+  }
+
+  window.forcePseudoUpdateV915 = async function(){
+    const pseudo = valueV915('pseudoIn') || valueV915('pseudo') || valueV915('pseudoInput');
+    if(!pseudo) return;
+
+    let key = '';
+    try { key = sessionStorage.getItem('winningScoreKeyV98') || ''; } catch(e) {}
+
+    // Si pas de clé, on ne force rien : ça veut dire que c'était un score perdu ou un ancien flux.
+    if(!key) return;
+
+    try {
+      await patchV915('/scores/' + key, {
+        pseudo: pseudo,
+        savedAt: Date.now(),
+        stage: 'pseudo_validated_v915'
+      });
+    } catch(e) {
+      console.warn('V9.15 pseudo gagnant non mis à jour', e);
+    }
+  };
+
+  window.cleanReturnDemoV915 = function(){
+    // Ne touche PAS au clavier code. On nettoie seulement les variables d'état et on revient démo.
+    try { if(typeof clearTimeout === 'function' && typeof _leadTimer !== 'undefined') clearTimeout(_leadTimer); } catch(e){}
+    try { if(typeof clearTimeout === 'function' && typeof idleTimer !== 'undefined') clearTimeout(idleTimer); } catch(e){}
+    try { if(typeof clearInterval === 'function' && typeof demoTimer !== 'undefined') clearInterval(demoTimer); } catch(e){}
+    try { if(typeof clearInterval === 'function' && typeof tickInt !== 'undefined') clearInterval(tickInt); } catch(e){}
+    try { if(typeof cancelAnimationFrame === 'function' && typeof rafId !== 'undefined') cancelAnimationFrame(rafId); } catch(e){}
+
+    try { pendingLot = null; } catch(e){}
+    try { currentLot = null; } catch(e){}
+    try { wonLot = null; } catch(e){}
+    try { lastScore = null; } catch(e){}
+    try { currentScore = null; } catch(e){}
+    try { activeCode = null; } catch(e){}
+    try { currentCode = null; } catch(e){}
+    try { codeVal = ''; } catch(e){}
+    try { isRetry = false; } catch(e){}
+    try { gameState = 'idle'; } catch(e){}
+    try { elapsed = 0; } catch(e){}
+    try { t0 = 0; } catch(e){}
+
+    try {
+      const pseudo = document.getElementById('pseudoIn');
+      if(pseudo) pseudo.value = '';
+    } catch(e){}
+
+    try {
+      const err = document.getElementById('codeErr');
+      if(err) err.textContent = '';
+    } catch(e){}
+
+    try {
+      const err = document.getElementById('saveErr');
+      if(err) err.textContent = '';
+    } catch(e){}
+
+    try {
+      if(typeof renderCode === 'function') renderCode();
+    } catch(e){}
+
+    try {
+      if(typeof startDemo === 'function') startDemo();
+    } catch(e){}
+
+    try {
+      if(typeof go === 'function') go('s-demo');
+    } catch(e){}
+
+    // On efface les clés après un petit délai pour laisser le PATCH pseudo passer.
+    setTimeout(function(){
+      try {
+        sessionStorage.removeItem('winnerIdV97');
+        sessionStorage.removeItem('winnerPayloadV97');
+        sessionStorage.removeItem('winPayloadV95');
+        sessionStorage.removeItem('capturedWinV94');
+        sessionStorage.removeItem('winningScoreSavedV98');
+        sessionStorage.removeItem('winningScoreKeyV98');
+        sessionStorage.removeItem('winningScorePayloadV98');
+      } catch(e){}
+    }, 800);
+
+    return false;
+  };
+
+  // Anti gain fantôme propre : uniquement à la validation d'un nouveau code, pas sur les touches.
+  if(typeof submitCode === 'function' && !submitCode.__antiGhostV915){
+    const originalSubmitCodeV915 = submitCode;
+    submitCode = async function(){
+      try {
+        pendingLot = null;
+        currentLot = null;
+        wonLot = null;
+        lastScore = null;
+        currentScore = null;
+        sessionStorage.removeItem('winnerIdV97');
+        sessionStorage.removeItem('winnerPayloadV97');
+        sessionStorage.removeItem('winPayloadV95');
+        sessionStorage.removeItem('capturedWinV94');
+        sessionStorage.removeItem('winningScoreSavedV98');
+        sessionStorage.removeItem('winningScoreKeyV98');
+        sessionStorage.removeItem('winningScorePayloadV98');
+      } catch(e){}
+      return await originalSubmitCodeV915.apply(this, arguments);
+    };
+    submitCode.__antiGhostV915 = true;
+  }
+
+  // Sorties définitives seulement : QR retour, classement retour, abandon retry, passer sans sauvegarder.
+  // On ne touche pas à btnLotterySave : il doit garder la 2e chance + saisie score.
+  document.addEventListener('click', function(e){
+    const t = e.target;
+    if(!t || !t.closest) return;
+
+    if(
+      t.closest('#btnLotterySkip') ||
+      t.closest('#btnLeadBack') ||
+      t.closest('#btnRetryQuit') ||
+      t.closest('#btnSkip')
+    ){
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      cleanReturnDemoV915();
+      return false;
+    }
+  }, true);
+
+  // Validation pseudo : d'abord pseudo gagnant, puis RAZ.
+  // Ne pas empêcher le clavier de fonctionner : on intervient seulement sur valider/save.
+  document.addEventListener('click', function(e){
+    const t = e.target;
+    if(!t || !t.closest) return;
+
+    const isValidate =
+      t.closest('#btnSave') ||
+      t.closest('.bval') ||
+      t.closest('#pseudoKeyboard .vk-key[data-action="validate"]');
+
+    if(isValidate){
+      setTimeout(async function(){
+        await forcePseudoUpdateV915();
+        cleanReturnDemoV915();
+      }, 350);
+    }
+  }, true);
 })();
 </script>
 

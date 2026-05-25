@@ -97,9 +97,16 @@ body{max-width:700px;margin:0 auto;padding:20px 14px 60px;}
 }
 
 
-/* === V9.11 fiche codes vendeurs fonctionnelle === */
-.print-code-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-.print-note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
+/* === V9.17 admin gagnants + fiche codes propre === */
+.admin-extra-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.admin-extra-note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
+.win-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;max-height:360px;overflow-y:auto}
+.win-row{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.22)}
+.win-medal{font-size:18px;text-align:center}
+.win-name{font-size:13px;font-weight:800}
+.win-meta{font-size:10px;color:var(--muted);line-height:1.45;margin-top:2px}
+.win-lot{font-size:12px;font-weight:900;color:#ffd700;text-align:right;max-width:220px}
+.win-empty{text-align:center;color:var(--muted);padding:18px;font-size:12px;line-height:1.6}
 
 </style>
 </head>
@@ -154,20 +161,7 @@ body{max-width:700px;margin:0 auto;padding:20px 14px 60px;}
     <div class="codes-wrap" id="codesWrap"></div>
   </div>
 
-  
-  <div class="card" id="cardPrintCodes">
-    <div class="ctitle">🖨️ FICHE CODES VENDEURS</div>
-    <div class="print-note">
-      Complète automatiquement jusqu'à <b>200 codes actifs disponibles</b>, puis ouvre une fiche imprimable pour les vendeurs.
-      Les codes peuvent être barrés au stylo après utilisation.
-    </div>
-    <div class="print-code-actions">
-      <button class="b p" id="btnPrintDailyCodes">IMPRIMER 200 CODES ACTIFS</button>
-      <button class="b sec" id="btnOnlyPrintCodes">Imprimer codes disponibles</button>
-    </div>
-  </div>
-
-<!-- LOTS -->
+  <!-- LOTS -->
   <div class="card">
     <div class="ctitle">🏆 LOTS À GAGNER</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.8">
@@ -245,7 +239,33 @@ body{max-width:700px;margin:0 auto;padding:20px 14px 60px;}
     <button class="b pur" id="btnChgPwd" style="width:100%;height:40px;font-size:15px">CHANGER LE MOT DE PASSE</button>
   </div>
 
-  <!-- DANGER -->
+  
+  <div class="card" id="cardPrintCodes">
+    <div class="ctitle">🖨️ FICHE CODES VENDEURS</div>
+    <div class="admin-extra-note">
+      Complète automatiquement jusqu'à <b>200 codes actifs disponibles</b>, puis ouvre une fiche imprimable.
+    </div>
+    <div class="admin-extra-actions">
+      <button class="b p" id="btnPrintDailyCodes">IMPRIMER 200 CODES ACTIFS</button>
+      <button class="b sec" id="btnOnlyPrintCodes">Imprimer codes disponibles</button>
+    </div>
+  </div>
+
+  <div class="card" id="cardWinners">
+    <div class="ctitle">🏆 GAGNANTS / LOTS REMPORTÉS</div>
+    <div class="admin-extra-note">
+      Liste des gagnants enregistrés dans les scores avec un lot associé.
+    </div>
+    <div class="admin-extra-actions">
+      <button class="b p" id="btnRefreshWinners">RAFRAÎCHIR GAGNANTS</button>
+      <button class="b sec" id="btnPrintWinners">Imprimer liste gagnants</button>
+    </div>
+    <div class="win-list" id="winnersList">
+      <div class="win-empty">Chargement des gagnants...</div>
+    </div>
+  </div>
+
+<!-- DANGER -->
   <div class="card" style="border-color:rgba(255,59,59,.2)">
     <div class="ctitle" style="color:var(--red)">⚠️ DANGER</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -616,24 +636,30 @@ function toast(msg,dur=2200){const t=document.getElementById('toast');t.textCont
 
 
 <script>
-/* === V9.11 impression fiche codes vendeurs fonctionnelle === */
+/* === V9.17 admin extra propre === */
 (function(){
   const TARGET_CODES = 200;
 
-  function todayKeyPrint(){
+  function escX(s){
+    return String(s || '').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function todayKeyX(){
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  function availableCodes(){
+  function availableCodesX(){
     const src = (typeof allCodes !== 'undefined' && allCodes) ? allCodes : {};
     return Object.entries(src)
-      .filter(([code,data]) => data && data.used !== true)
-      .map(([code,data]) => ({code, data}))
-      .sort((a,b)=>a.code.localeCompare(b.code));
+      .filter(function(pair){ return pair[1] && pair[1].used !== true; })
+      .map(function(pair){ return {code: pair[0], data: pair[1]}; })
+      .sort(function(a,b){ return a.code.localeCompare(b.code); });
   }
 
-  function genCode(existing){
+  function genCodeX(existing){
     let code = '', safety = 0;
     do {
       code = String(Math.floor(1000 + Math.random() * 9000));
@@ -642,24 +668,24 @@ function toast(msg,dur=2200){const t=document.getElementById('toast');t.textCont
     return code;
   }
 
-  async function ensureCodes(target){
+  async function ensureCodesX(target){
     if(typeof fbGet !== 'function' || typeof fbPatch !== 'function'){
-      throw new Error("Firebase admin non initialisé. Connecte-toi d'abord à l'admin.");
+      throw new Error("Firebase admin non initialisé");
     }
 
     const snap = await fbGet('/codes');
     allCodes = snap || {};
 
-    let available = availableCodes();
+    let available = availableCodesX();
     const missing = Math.max(0, target - available.length);
 
     if(missing > 0){
       const existing = new Set(Object.keys(allCodes || {}));
       const updates = {};
-      const day = todayKeyPrint();
+      const day = todayKeyX();
 
       for(let i=0; i<missing; i++){
-        const code = genCode(existing);
+        const code = genCodeX(existing);
         existing.add(code);
         updates[code] = {
           used:false,
@@ -670,59 +696,27 @@ function toast(msg,dur=2200){const t=document.getElementById('toast');t.textCont
       }
 
       await fbPatch('/codes', updates);
-
       const fresh = await fbGet('/codes');
       allCodes = fresh || {};
       if(typeof loadAdminData === 'function') await loadAdminData();
-      available = availableCodes();
+      available = availableCodesX();
     }
 
     return available.slice(0, target);
   }
 
-  function esc(s){
-    return String(s || '').replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-
-  function printSheet(codes, subtitle){
-    const now = new Date();
-    const dateFr = now.toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-    const hourFr = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-
-    const rows = codes.map(function(c, idx){
-      return '<div class="code">' +
-        '<div class="n">' + (idx+1) + '</div>' +
-        '<div class="v">' + esc(c.code) + '</div>' +
-        '<div class="box"></div>' +
-      '</div>';
-    }).join('');
-
+  function openPrintWindowX(title, bodyHtml, extraCss){
     const parts = [];
-    parts.push('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche codes vendeurs</title>');
-    parts.push('<style>');
-    parts.push('*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:14mm;color:#111;background:white}');
-    parts.push('.head{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:12px}');
-    parts.push('h1{margin:0;font-size:22px;letter-spacing:.4px}h2{margin:4px 0 0;font-size:13px;font-weight:500}.meta{text-align:right;font-size:11px;line-height:1.45}');
-    parts.push('.rules{border:1px solid #333;border-radius:8px;padding:8px 10px;margin:10px 0 12px;font-size:11px;line-height:1.35;background:#f7f7f7}');
-    parts.push('.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}');
-    parts.push('.code{border:1.5px solid #111;border-radius:7px;min-height:34px;display:grid;grid-template-columns:24px 1fr 24px;align-items:center;overflow:hidden;break-inside:avoid}');
-    parts.push('.n{font-size:9px;color:#555;text-align:center;border-right:1px solid #bbb;height:100%;display:flex;align-items:center;justify-content:center;background:#f2f2f2}');
-    parts.push('.v{font-family:Courier New,monospace;font-size:19px;font-weight:900;letter-spacing:3px;text-align:center}.box{width:15px;height:15px;border:1.5px solid #111;margin:auto}');
-    parts.push('.foot{margin-top:10px;font-size:9px;color:#444;display:flex;justify-content:space-between;border-top:1px solid #aaa;padding-top:6px}');
-    parts.push('@media print{body{padding:8mm}.grid{gap:4px}.code{min-height:31px}.v{font-size:18px;letter-spacing:3px}.rules{font-size:10px;margin:7px 0 9px;padding:6px}h1{font-size:19px}h2{font-size:11px}.meta{font-size:9px}}');
-    parts.push('</style></head><body>');
-    parts.push('<div class="head"><div><h1>JouéClub Les Angles — Fiche codes vendeurs</h1><h2>' + esc(subtitle) + '</h2></div><div class="meta"><b>' + esc(dateFr) + '</b><br>Générée à ' + esc(hourFr) + '<br>' + codes.length + ' codes</div></div>');
-    parts.push('<div class="rules"><b>Consigne vendeurs :</b> donnez un code au client pour lancer une partie. Barrez le code dès qu’il est donné. Un code = une partie. Si un code ne fonctionne pas, donnez le suivant.</div>');
-    parts.push('<div class="grid">' + rows + '</div>');
-    parts.push('<div class="foot"><div>Document interne magasin — ne pas laisser en libre accès client.</div><div>10 Secondes — codes actifs</div></div>');
+    parts.push('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>' + escX(title) + '</title>');
+    parts.push('<style>body{font-family:Arial,Helvetica,sans-serif;padding:16px;color:#111;background:#fff}h1{margin:0 0 12px;font-size:22px}.muted{font-size:11px;color:#555;margin-bottom:12px}' + (extraCss || '') + '</style>');
+    parts.push('</head><body>');
+    parts.push(bodyHtml);
     parts.push('<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print()},300)};</scr' + 'ipt>');
     parts.push('</body></html>');
 
     const w = window.open('', '_blank');
     if(!w){
-      alert("Popup bloquée : autorise les fenêtres pop-up pour imprimer la fiche.");
+      alert("Popup bloquée : autorise les fenêtres pop-up.");
       return;
     }
     w.document.open();
@@ -730,13 +724,43 @@ function toast(msg,dur=2200){const t=document.getElementById('toast');t.textCont
     w.document.close();
   }
 
-  async function print200(){
+  function printCodeSheetX(codes, subtitle){
+    const now = new Date();
+    const dateFr = now.toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    const hourFr = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+
+    const rows = codes.map(function(c, idx){
+      return '<div class="code"><div class="n">' + (idx+1) + '</div><div class="v">' + escX(c.code) + '</div><div class="box"></div></div>';
+    }).join('');
+
+    const css = `
+      .head{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:12px}
+      .meta{text-align:right;font-size:11px;line-height:1.45}
+      .rules{border:1px solid #333;border-radius:8px;padding:8px 10px;margin:10px 0 12px;font-size:11px;line-height:1.35;background:#f7f7f7}
+      .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+      .code{border:1.5px solid #111;border-radius:7px;min-height:34px;display:grid;grid-template-columns:24px 1fr 24px;align-items:center;break-inside:avoid}
+      .n{font-size:9px;color:#555;text-align:center;border-right:1px solid #bbb;height:100%;display:flex;align-items:center;justify-content:center;background:#f2f2f2}
+      .v{font-family:Courier New,monospace;font-size:19px;font-weight:900;letter-spacing:3px;text-align:center}
+      .box{width:15px;height:15px;border:1.5px solid #111;margin:auto}
+      @media print{body{padding:8mm}.grid{gap:4px}.code{min-height:31px}.v{font-size:18px}}
+    `;
+
+    const body =
+      '<div class="head"><div><h1>JouéClub Les Angles — Fiche codes vendeurs</h1><div class="muted">' + escX(subtitle) + '</div></div>' +
+      '<div class="meta"><b>' + escX(dateFr) + '</b><br>Générée à ' + escX(hourFr) + '<br>' + codes.length + ' codes</div></div>' +
+      '<div class="rules"><b>Consigne vendeurs :</b> donnez un code au client pour lancer une partie. Barrez le code dès qu’il est donné. Un code = une partie.</div>' +
+      '<div class="grid">' + rows + '</div>';
+
+    openPrintWindowX('Fiche codes vendeurs', body, css);
+  }
+
+  async function print200X(){
     const btn = document.getElementById('btnPrintDailyCodes');
     try{
       if(btn){ btn.disabled = true; btn.textContent = 'Préparation...'; }
-      const codes = await ensureCodes(TARGET_CODES);
+      const codes = await ensureCodesX(TARGET_CODES);
       if(!codes.length){ alert('Aucun code disponible.'); return; }
-      printSheet(codes, '200 codes actifs disponibles');
+      printCodeSheetX(codes, '200 codes actifs disponibles');
       if(typeof toast === 'function') toast('Fiche codes prête à imprimer !');
     }catch(e){
       console.error(e);
@@ -746,31 +770,102 @@ function toast(msg,dur=2200){const t=document.getElementById('toast');t.textCont
     }
   }
 
-  async function printExisting(){
+  async function printExistingX(){
     try{
       if(typeof fbGet === 'function'){
         const snap = await fbGet('/codes');
         allCodes = snap || {};
       }
-      const codes = availableCodes().slice(0, TARGET_CODES);
+      const codes = availableCodesX().slice(0, TARGET_CODES);
       if(!codes.length){ alert('Aucun code disponible à imprimer.'); return; }
-      printSheet(codes, 'Codes disponibles existants');
+      printCodeSheetX(codes, 'Codes disponibles existants');
     }catch(e){
       console.error(e);
       alert('Erreur impression codes : ' + e.message);
     }
   }
 
+  function isWinnerX(s){
+    return !!(s && (s.lot || s.prize || s.win === true || s.isWinner === true));
+  }
+
+  function normalizeWinnerX(s){
+    const ts = s.ts || s.createdAt || s.savedAt || Date.now();
+    const d = new Date(ts);
+    return {
+      pseudo:s.pseudo || 'À RENSEIGNER',
+      lot:s.lot || s.prize || 'Lot gagné',
+      emoji:s.lotEmoji || '🎁',
+      code:s.code || '',
+      score:Number(s.score || 0),
+      rawDiff:Number(s.rawDiff || s.diff || 0),
+      day:s.day || `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      hour:String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'),
+      ts
+    };
+  }
+
+  function scoreTxtX(w){
+    const out = [];
+    if(w.score) out.push((w.score/1000).toFixed(3) + 's');
+    if(typeof fDiff === 'function') out.push(fDiff(w.rawDiff || 0));
+    if(w.code) out.push('code ' + w.code);
+    return out.join(' · ');
+  }
+
+  async function loadWinnersX(){
+    const el = document.getElementById('winnersList');
+    if(!el) return;
+    el.innerHTML = '<div class="win-empty">Chargement...</div>';
+
+    try{
+      if(typeof fbGet !== 'function') throw new Error("Firebase admin non initialisé");
+      const snap = await fbGet('/scores');
+      const winners = snap
+        ? Object.entries(snap).map(function(pair){ return Object.assign({}, pair[1], {_key:pair[0]}); }).filter(isWinnerX).map(normalizeWinnerX)
+        : [];
+
+      winners.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+
+      if(!winners.length){
+        el.innerHTML = '<div class="win-empty">Aucun gagnant enregistré pour le moment.</div>';
+        return;
+      }
+
+      el.innerHTML = '';
+      winners.slice(0,80).forEach(function(w,i){
+        const row = document.createElement('div');
+        row.className = 'win-row';
+        row.innerHTML =
+          '<div class="win-medal">' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':'🏆') + '</div>' +
+          '<div><div class="win-name">' + escX(w.pseudo) + '</div><div class="win-meta">' + escX(w.day) + ' · ' + escX(w.hour) + ' · ' + escX(scoreTxtX(w)) + '</div></div>' +
+          '<div class="win-lot">' + escX(w.emoji + ' ' + w.lot) + '</div>';
+        el.appendChild(row);
+      });
+
+    }catch(e){
+      console.error(e);
+      el.innerHTML = '<div class="win-empty">Erreur chargement gagnants : ' + escX(e.message) + '</div>';
+    }
+  }
+
+  function printWinnersX(){
+    const el = document.getElementById('winnersList');
+    if(!el) return;
+    const css = '.row{border-bottom:1px solid #ccc;padding:8px 0}.win-lot,.lot{font-weight:bold}.win-meta,.meta{font-size:12px;color:#555}';
+    const body = '<h1>JouéClub Les Angles — Gagnants 10 Secondes</h1><div class="muted">Liste imprimée depuis l’administration</div>' + el.innerHTML;
+    openPrintWindowX('Gagnants 10 Secondes', body, css);
+  }
+
   document.addEventListener('click', function(e){
-    if(e.target && e.target.id === 'btnPrintDailyCodes'){
-      e.preventDefault();
-      print200();
-    }
-    if(e.target && e.target.id === 'btnOnlyPrintCodes'){
-      e.preventDefault();
-      printExisting();
-    }
+    if(e.target && e.target.id === 'btnPrintDailyCodes'){ e.preventDefault(); print200X(); }
+    if(e.target && e.target.id === 'btnOnlyPrintCodes'){ e.preventDefault(); printExistingX(); }
+    if(e.target && e.target.id === 'btnRefreshWinners'){ e.preventDefault(); loadWinnersX(); }
+    if(e.target && e.target.id === 'btnPrintWinners'){ e.preventDefault(); printWinnersX(); }
   });
+
+  setTimeout(loadWinnersX, 1200);
+  window.loadWinnersAdmin = loadWinnersX;
 })();
 </script>
 
