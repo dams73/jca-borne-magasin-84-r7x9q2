@@ -1,8 +1,9 @@
-V9.7 — correction gain + retour démo
+V9.8 — gain visible dans l'admin
 
-Base : V9.6/V9.5.
-Corrections limitées :
-- gain enregistré immédiatement au clic sur ENREGISTRER MON SCORE gagnant
+Base : V9.7.
+Correction limitée :
+- écrit le gagnant directement dans /scores avec lot, lotEmoji, score, diff, day, ts
+- l'admin lit /scores, donc le lot #2 doit remonter
 - mise à jour du pseudo ensuite si validé
-- bouton RETOUR AU JEU QR force la démo et bloque le rebond vers code
 - aucun changement visuel
+- aucun changement QR / retour / chrono / code

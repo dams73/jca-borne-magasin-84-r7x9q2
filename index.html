@@ -2251,5 +2251,185 @@ go('s-demo');
 })();
 </script>
 
+
+<script>
+/* === V9.8 correctif admin gain : écrire aussi dans /scores === */
+(function(){
+  const FB_BASE_V98 = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
+
+  function todayKeyV98(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function textV98(id){
+    const el = document.getElementById(id);
+    return el ? String(el.textContent || '').trim() : '';
+  }
+
+  function valueV98(id){
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function getCodeV98(){
+    try { if(typeof activeCode !== 'undefined' && activeCode) return String(activeCode); } catch(e){}
+    try { if(typeof currentCode !== 'undefined' && currentCode) return String(currentCode); } catch(e){}
+    try { if(typeof codeVal !== 'undefined' && codeVal) return String(codeVal); } catch(e){}
+    return '';
+  }
+
+  function getLotV98(){
+    let lotObj = null;
+    try { if(typeof pendingLot !== 'undefined' && pendingLot) lotObj = pendingLot; } catch(e){}
+    try { if(!lotObj && typeof currentLot !== 'undefined' && currentLot) lotObj = currentLot; } catch(e){}
+
+    if(lotObj && typeof lotObj === 'object'){
+      return {
+        name: lotObj.name || lotObj.title || lotObj.label || lotObj.lot || lotObj.prize || textV98('wonLotName') || 'Lot gagné',
+        emoji: lotObj.emoji || '🎁',
+        desc: lotObj.desc || lotObj.description || '',
+        key: lotObj._key || lotObj.id || '',
+        color: lotObj.color || ''
+      };
+    }
+
+    if(lotObj && typeof lotObj === 'string'){
+      return {name: lotObj, emoji:'🎁', desc:'', key:'', color:''};
+    }
+
+    return {
+      name: textV98('wonLotName') || textV98('wonLotDesc') || 'Lot gagné',
+      emoji: '🎁',
+      desc: textV98('wonLotDesc') || '',
+      key: '',
+      color: ''
+    };
+  }
+
+  function getScoreV98(){
+    const data = {};
+    try {
+      if(typeof lastScore !== 'undefined' && lastScore && typeof lastScore === 'object'){
+        Object.assign(data, lastScore);
+      }
+    } catch(e){}
+
+    // Le jeu utilise score/diff/rawDiff dans l'admin.
+    let score = Number(data.score || data.ms || 0);
+    let diff = Number(data.diff || data.rawDiff || 0);
+
+    // Si lastScore est partiel, on tente depuis le texte "Ton temps : 9.423s (-0.577s)"
+    const shown = textV98('wonScore') || textV98('saveDisp');
+    if((!score || !diff) && shown){
+      const mScore = shown.match(/(\d+[.,]\d+)\s*s/i);
+      if(mScore) score = Math.round(parseFloat(mScore[1].replace(',','.')) * 1000);
+      const mDiff = shown.match(/([+-]\d+[.,]\d+)\s*s/);
+      if(mDiff) diff = Math.round(parseFloat(mDiff[1].replace(',','.')) * 1000);
+    }
+
+    return {score, diff, rawDiff: diff, displayScore: shown};
+  }
+
+  async function postV98(path, data){
+    const r = await fetch(FB_BASE_V98 + path + '.json', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase POST ' + path + ' ' + r.status);
+    return await r.json();
+  }
+
+  async function patchV98(path, data){
+    const r = await fetch(FB_BASE_V98 + path + '.json', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('Firebase PATCH ' + path + ' ' + r.status);
+    return await r.json();
+  }
+
+  async function saveWinningScoreV98(stage){
+    const lot = getLotV98();
+    const s = getScoreV98();
+    const code = getCodeV98();
+    const pseudo = valueV98('pseudoIn') || valueV98('pseudo') || 'À RENSEIGNER';
+
+    const dedupe = `${code}|${s.score}|${lot.name}`;
+    if(sessionStorage.getItem('winningScoreSavedV98') === dedupe) return;
+    sessionStorage.setItem('winningScoreSavedV98', dedupe);
+
+    const payload = {
+      pseudo,
+      score: s.score,
+      diff: Math.abs(s.diff || 0),
+      rawDiff: s.rawDiff || s.diff || 0,
+      day: todayKeyV98(),
+      ts: Date.now(),
+      code,
+      lot: lot.name,
+      lotEmoji: lot.emoji,
+      lotDesc: lot.desc,
+      lotKey: lot.key,
+      lotColor: lot.color,
+      win: true,
+      isWinner: true,
+      stage,
+      source: 'v9.8_scores_admin_fix'
+    };
+
+    // IMPORTANT : l'admin lit /scores, donc le gain doit être ici.
+    const res = await postV98('/scores', payload);
+
+    try {
+      sessionStorage.setItem('winningScoreKeyV98', res && res.name ? res.name : '');
+      sessionStorage.setItem('winningScorePayloadV98', JSON.stringify(payload));
+    } catch(e){}
+
+    // Bonus compatible, sans impact admin.
+    try { await postV98('/winners', payload); } catch(e){}
+
+    return payload;
+  }
+
+  async function updateWinningPseudoV98(){
+    let key = '';
+    try { key = sessionStorage.getItem('winningScoreKeyV98') || ''; } catch(e){}
+    const pseudo = valueV98('pseudoIn') || valueV98('pseudo');
+    if(!key || !pseudo) return;
+
+    try {
+      await patchV98('/scores/' + key, {pseudo, savedAt:Date.now(), stage:'pseudo_validated'});
+    } catch(e){
+      console.warn('V9.8 pseudo gagnant non mis à jour dans scores', e);
+    }
+  }
+
+  // Enregistrement immédiat du gain au clic gagnant.
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest && e.target.closest('#btnWonNext');
+    if(!btn) return;
+
+    saveWinningScoreV98('won_next_clicked').catch(function(err){
+      console.warn('V9.8 gain non remonté dans /scores', err);
+      alert("Attention : le gain n'a pas pu remonter dans l'admin. Vérifie internet.");
+      try { sessionStorage.removeItem('winningScoreSavedV98'); } catch(e){}
+    });
+  }, true);
+
+  // Si pseudo validé ensuite, on met à jour la ligne /scores.
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest && e.target.closest('#btnSave, .bval, #pseudoKeyboard .vk-key[data-action="validate"]');
+    if(!btn) return;
+
+    setTimeout(function(){
+      updateWinningPseudoV98();
+    }, 120);
+  }, true);
+})();
+</script>
+
 </body>
 </html>
