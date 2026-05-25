@@ -539,6 +539,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Space Mono',monosp
 #s-save .pinput{text-align:center!important}
 #s-save .virtual-keyboard{margin-left:auto!important;margin-right:auto!important}
 
+
+/* === V8 CORRECTION ECRAN GAGNANT / CLAVIER === */
+#s-save{padding:min(3.2vw,34px)!important;display:flex;align-items:center;justify-content:center}
+.save-win-card{width:min(1060px,94vw);min-height:min(700px,86vh);border-radius:42px;padding:clamp(20px,3vw,38px);background:linear-gradient(135deg,rgba(5,8,26,.92),rgba(7,17,64,.84) 48%,rgba(35,5,27,.80)),radial-gradient(circle at 50% 0%,rgba(255,215,0,.20),transparent 38%);border:2px solid rgba(255,255,255,.18);box-shadow:0 34px 110px rgba(0,0,0,.66),0 0 70px rgba(0,160,255,.24),0 0 80px rgba(255,36,85,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;position:relative;overflow:hidden}
+.save-win-card::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,200,255,.16),transparent 24%,transparent 76%,rgba(255,36,85,.15)),repeating-linear-gradient(105deg,rgba(255,255,255,.03) 0 2px,transparent 2px 72px);pointer-events:none}
+.save-win-card>*{position:relative;z-index:1}
+.save-win-title{font-size:clamp(58px,7vw,104px);line-height:.82;font-weight:1000;color:#ffd500;text-shadow:0 10px 30px rgba(0,0,0,.82),0 0 34px rgba(255,215,0,.62);letter-spacing:-3px}
+.save-win-subtitle{margin-top:6px;font-size:clamp(26px,3.4vw,50px);font-weight:1000;color:#fff;text-shadow:0 0 24px rgba(0,200,255,.42),0 8px 20px rgba(0,0,0,.7)}
+.save-win-score{margin-top:8px;font-size:clamp(18px,2.1vw,30px);font-weight:900;color:#dbe9ff}
+.save-win-input{width:min(720px,90%)!important;max-width:none!important;height:clamp(64px,7vw,88px)!important;text-align:center!important;border-radius:22px!important;border:2px solid rgba(0,200,255,.65)!important;background:rgba(0,10,36,.66)!important;color:#dffcff!important;font-size:clamp(30px,4vw,56px)!important;box-shadow:0 0 28px rgba(0,200,255,.38),inset 0 0 20px rgba(0,200,255,.12)!important}
+#s-save .virtual-keyboard{max-width:840px;margin:8px auto 0!important}
+#s-save .vk-row{display:flex;justify-content:center;gap:8px}
+#s-save .vk-key{min-width:48px;height:clamp(36px,5.2vh,50px);padding:0 12px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));color:#fff;font-size:21px;font-weight:1000;box-shadow:0 10px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.15);cursor:pointer}
+#s-save .vk-key.space{min-width:210px}
+#s-save .vk-key.danger{background:linear-gradient(180deg,rgba(255,86,116,.75),rgba(255,36,85,.45))}
+#s-save .vk-key.ok{min-width:150px;color:#07133a;background:linear-gradient(180deg,#fff3a2,#ffd500 55%,#ff8a00)}
+.save-win-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+#s-save .bval{min-width:260px;height:clamp(56px,7vh,76px)!important;border-radius:999px!important;font-size:clamp(24px,3.2vw,42px)!important;background:linear-gradient(180deg,#fff3a2,#ff8a00 70%,#ff2455)!important;color:#fff!important;text-shadow:0 4px 12px rgba(0,0,0,.45)!important}
+#s-save .bskip{min-width:260px;height:clamp(50px,6vh,66px);border-radius:999px;color:rgba(255,255,255,.86)!important;background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.22)!important;font-weight:900}
+
 </style>
 </head>
 <body>
@@ -651,36 +671,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Space Mono',monosp
 
 <!-- SAVE -->
 <div class="screen hidden" id="s-save">
-  <div class="save-premium-card">
-    <div class="save-premium-grid save-only-pseudo">
-      <div class="save-left">
-        <div class="sg" id="saveGrd"></div>
-        <div class="sdisp" id="saveDisp"></div>
-        <div class="fl-sm">Saisis ton pseudo</div>
-        <input class="pinput" id="pseudoIn" type="text" maxlength="16" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
-        <div class="virtual-keyboard" id="pseudoKeyboard" aria-label="Clavier pseudo">
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="A">A</button><button type="button" class="vk-key" data-key="Z">Z</button><button type="button" class="vk-key" data-key="E">E</button><button type="button" class="vk-key" data-key="R">R</button><button type="button" class="vk-key" data-key="T">T</button><button type="button" class="vk-key" data-key="Y">Y</button><button type="button" class="vk-key" data-key="U">U</button><button type="button" class="vk-key" data-key="I">I</button><button type="button" class="vk-key" data-key="O">O</button><button type="button" class="vk-key" data-key="P">P</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="Q">Q</button><button type="button" class="vk-key" data-key="S">S</button><button type="button" class="vk-key" data-key="D">D</button><button type="button" class="vk-key" data-key="F">F</button><button type="button" class="vk-key" data-key="G">G</button><button type="button" class="vk-key" data-key="H">H</button><button type="button" class="vk-key" data-key="J">J</button><button type="button" class="vk-key" data-key="K">K</button><button type="button" class="vk-key" data-key="L">L</button><button type="button" class="vk-key" data-key="M">M</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="W">W</button><button type="button" class="vk-key" data-key="X">X</button><button type="button" class="vk-key" data-key="C">C</button><button type="button" class="vk-key" data-key="V">V</button><button type="button" class="vk-key" data-key="B">B</button><button type="button" class="vk-key" data-key="N">N</button><button type="button" class="vk-key" data-key="0">0</button><button type="button" class="vk-key" data-key="1">1</button><button type="button" class="vk-key" data-key="2">2</button><button type="button" class="vk-key" data-key="3">3</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="4">4</button><button type="button" class="vk-key" data-key="5">5</button><button type="button" class="vk-key" data-key="6">6</button><button type="button" class="vk-key" data-key="7">7</button><button type="button" class="vk-key" data-key="8">8</button><button type="button" class="vk-key" data-key="9">9</button><button type="button" class="vk-key space" data-key=" ">ESPACE</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key wide danger" data-action="clear">EFFACER</button>
-            <button type="button" class="vk-key wide danger" data-action="backspace">⌫</button>
-            <button type="button" class="vk-key ok" data-action="validate">VALIDER</button>
-          </div>
-        </div>
-        <div class="err-msg" id="saveErr"></div>
-        <button class="bval" id="btnSave">VALIDER</button>
-        <button class="bskip" id="btnSkip">Passer sans sauvegarder</button>
+  <div class="save-win-card">
+    <div class="save-win-title">GAGNÉ !</div>
+    <div class="save-win-subtitle">Enregistre ton pseudo</div>
+    <div class="save-win-score" id="saveDisp"></div>
+    <input class="pinput save-win-input" id="pseudoIn" type="text" maxlength="16" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false" readonly>
+    <div class="virtual-keyboard" id="pseudoKeyboard" aria-label="Clavier pseudo">
+      <div class="vk-row"><button type="button" class="vk-key" data-key="A">A</button><button type="button" class="vk-key" data-key="Z">Z</button><button type="button" class="vk-key" data-key="E">E</button><button type="button" class="vk-key" data-key="R">R</button><button type="button" class="vk-key" data-key="T">T</button><button type="button" class="vk-key" data-key="Y">Y</button><button type="button" class="vk-key" data-key="U">U</button><button type="button" class="vk-key" data-key="I">I</button><button type="button" class="vk-key" data-key="O">O</button><button type="button" class="vk-key" data-key="P">P</button></div>
+      <div class="vk-row"><button type="button" class="vk-key" data-key="Q">Q</button><button type="button" class="vk-key" data-key="S">S</button><button type="button" class="vk-key" data-key="D">D</button><button type="button" class="vk-key" data-key="F">F</button><button type="button" class="vk-key" data-key="G">G</button><button type="button" class="vk-key" data-key="H">H</button><button type="button" class="vk-key" data-key="J">J</button><button type="button" class="vk-key" data-key="K">K</button><button type="button" class="vk-key" data-key="L">L</button><button type="button" class="vk-key" data-key="M">M</button></div>
+      <div class="vk-row"><button type="button" class="vk-key" data-key="W">W</button><button type="button" class="vk-key" data-key="X">X</button><button type="button" class="vk-key" data-key="C">C</button><button type="button" class="vk-key" data-key="V">V</button><button type="button" class="vk-key" data-key="B">B</button><button type="button" class="vk-key" data-key="N">N</button><button type="button" class="vk-key" data-key="0">0</button><button type="button" class="vk-key" data-key="1">1</button><button type="button" class="vk-key" data-key="2">2</button><button type="button" class="vk-key" data-key="3">3</button></div>
+      <div class="vk-row"><button type="button" class="vk-key" data-key="4">4</button><button type="button" class="vk-key" data-key="5">5</button><button type="button" class="vk-key" data-key="6">6</button><button type="button" class="vk-key" data-key="7">7</button><button type="button" class="vk-key" data-key="8">8</button><button type="button" class="vk-key" data-key="9">9</button><button type="button" class="vk-key space" data-key=" ">ESPACE</button></div>
+      <div class="vk-row">
+        <button type="button" class="vk-key wide danger" data-action="clear">EFFACER</button>
+        <button type="button" class="vk-key wide danger" data-action="backspace">⌫</button>
+        <button type="button" class="vk-key ok" data-action="validate">VALIDER</button>
       </div>
+    </div>
+    <div class="err-msg" id="saveErr"></div>
+    <div class="save-win-actions">
+      <button type="button" class="bval" id="btnSave">VALIDER</button>
+      <button type="button" class="bskip" id="btnSkip">Passer sans sauvegarder</button>
     </div>
   </div>
 </div>
@@ -1401,9 +1411,6 @@ document.getElementById('btnLotterySkip').addEventListener('click',()=>{
 // ═══════════════════════════
 function showSave(){
   if(!lastScore)return;
-  const abs=Math.abs(lastScore.diff), g=gradeInfo(abs);
-  document.getElementById('saveGrd').textContent=g.label;
-  document.getElementById('saveGrd').style.color=g.color;
   const diff=lastScore.score-TARGET;
   document.getElementById('saveDisp').textContent=(lastScore.score/1000).toFixed(3)+'s  ('+fDiff(diff)+')';
   document.getElementById('pseudoIn').value='';
@@ -1660,6 +1667,30 @@ go('s-demo');
       e.target.blur();
     }
   });
+})();
+</script>
+
+
+<script>
+/* === V8 actions gagnant robustes === */
+(function(){
+  function normalizePseudo(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').slice(0,16)}
+  function input(){return document.getElementById('pseudoIn')}
+  function setPseudo(v){const i=input();if(!i)return;i.value=normalizePseudo(v);i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));const e=document.getElementById('saveErr');if(e)e.textContent=''}
+  function menu(){try{if(typeof go==='function')return go('s-code');if(typeof resetGame==='function')return resetGame();}catch(e){} location.reload()}
+  async function save(){const i=input();if(!i)return;const pseudo=normalizePseudo(i.value);if(!pseudo){const e=document.getElementById('saveErr');if(e)e.textContent='Saisis ton pseudo';return}
+    try{
+      const original = document.querySelector('button.__originalSaveBtn');
+      if(original) original.click();
+    }catch(e){}
+    menu();
+  }
+  document.addEventListener('click',function(e){
+    const k=e.target.closest&&e.target.closest('#pseudoKeyboard .vk-key');
+    if(k){e.preventDefault();e.stopPropagation();const i=input();if(!i)return;const a=k.dataset.action;if(a==='clear')return setPseudo('');if(a==='backspace')return setPseudo(i.value.slice(0,-1));if(a==='validate')return save();return setPseudo(i.value+(k.dataset.key||''))}
+    if(e.target.closest&&e.target.closest('#btnSave')){e.preventDefault();e.stopPropagation();return save()}
+    if(e.target.closest&&e.target.closest('#btnSkip')){e.preventDefault();e.stopPropagation();return menu()}
+  },true);
 })();
 </script>
 

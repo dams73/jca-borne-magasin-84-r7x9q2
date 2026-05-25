@@ -1,1 +1,1 @@
-V7B clean : QR uniquement perdants, gagnants = pseudo + clavier virtuel. Traces QR gagnant supprimées.
+V8 correction gagnant : boutons fonctionnels, retour menu, titre GAGNÉ.
