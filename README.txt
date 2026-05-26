@@ -1,9 +1,8 @@
-V9.17 — admin propre
+V9.33 — admin Firebase direct
 
-Base jeu : V9.15 validée.
-Admin reconstruit proprement :
-- Fiche codes vendeurs 200 codes.
-- Liste gagnants.
-- Suppression pilotage écran.
-- Correction bug texte brut en bas de page.
-- Aucun changement côté jeu.
+Jeu non modifié.
+Admin uniquement :
+- Lecture directe Firebase REST pour /plays et /scores.
+- Fonctionne en local et sur GitHub si internet OK et règles Firebase OK.
+- Affiche erreurs si Firebase refuse.
+- Historique parties/codes et gagnants.
