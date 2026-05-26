@@ -1,718 +1,602 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Admin — 10 SECONDES</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — 10 Secondes</title>
 <style>
-:root{--bg:#0a0a14;--surf:#111122;--bord:rgba(255,255,255,.1);--blue:#3d9bff;--green:#00ff88;--gold:#ffd700;--red:#ff3b3b;--purple:#a855f7;--muted:#7777aa;--text:#fff;}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100%;}
-body{max-width:700px;margin:0 auto;padding:20px 14px 60px;}
-#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-#login.h{display:none;}
-.lbox{background:var(--surf);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:32px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px;}
-.logo{font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:4px;color:var(--purple);}
-.logo-sub{font-size:12px;color:var(--muted);letter-spacing:3px;}
-#main{display:none;}
-#main.v{display:block;}
-.adm-hd{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--bord);}
-.adm-logo{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:4px;color:var(--purple);flex:1;}
-.spill{font-size:10px;padding:4px 12px;border-radius:20px;border:1px solid var(--bord);color:var(--muted);display:flex;align-items:center;gap:5px;}
-.sdot{width:7px;height:7px;border-radius:50%;background:var(--red);}
-.sdot.on{background:var(--green);}
-.b-logout{font-size:11px;color:var(--muted);background:none;border:1px solid var(--bord);border-radius:8px;padding:5px 11px;cursor:pointer;}
-.card{background:var(--surf);border:1px solid var(--bord);border-radius:16px;padding:18px;margin-bottom:12px;}
-.ctitle{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:3px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.sbox{background:rgba(255,255,255,.03);border-radius:10px;padding:10px;text-align:center;}
-.sval{font-family:'Bebas Neue',cursive;font-size:26px;color:var(--blue);}
-.slbl{font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px;}
-.cctrls{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
-.codes-wrap{display:flex;flex-wrap:wrap;gap:7px;max-height:200px;overflow-y:auto;}
-.chip{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:4px;padding:10px 16px;border-radius:8px;background:rgba(61,155,255,.1);border:1px solid rgba(61,155,255,.3);color:var(--blue);cursor:pointer;user-select:all;transition:background .15s;}
-.chip:hover{background:rgba(61,155,255,.22);}
-.chip.used{opacity:.28;text-decoration:line-through;color:var(--muted);border-color:var(--bord);cursor:default;}
-/* LOTS */
-.lot-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
-.lot-item{border:1px solid var(--bord);border-radius:12px;padding:14px;background:rgba(255,255,255,.03);}
-.lot-item-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.lot-rank{font-family:'Bebas Neue',cursive;font-size:20px;color:var(--muted);}
-.lot-btns{display:flex;gap:7px;margin-top:8px;}
-.no-lots{text-align:center;color:var(--muted);padding:20px;font-size:13px;line-height:2;}
-/* SCORES */
-.srow{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:5px;}
-.smedal{font-size:17px;width:26px;}
-.spseudo{flex:1;font-size:13px;font-weight:700;}
-.smeta{font-size:10px;color:var(--muted);}
-.sdiff{font-family:'Bebas Neue',cursive;font-size:17px;min-width:68px;text-align:right;}
-/* FORMS */
-.frow{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
-.fl{font-size:10px;color:var(--muted);letter-spacing:3px;}
-.fi{background:rgba(255,255,255,.05);border:1px solid var(--bord);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:9px 12px;outline:none;width:100%;}
-.fi:focus{border-color:var(--blue);}
-.fi-color{width:48px;height:36px;border-radius:8px;border:1px solid var(--bord);padding:2px;background:rgba(255,255,255,.05);cursor:pointer;}
-.fsel{background:rgba(255,255,255,.05);border:1px solid var(--bord);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:9px 12px;outline:none;width:auto;}
-.b{font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:2px;padding:0 16px;height:36px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;}
-.b:active{transform:scale(.96);}
-.b.p{background:var(--blue);color:#000;}
-.b.s{background:var(--green);color:#000;}
-.b.d{background:var(--red);color:#fff;}
-.b.sec{background:rgba(255,255,255,.05);border:1px solid var(--bord);color:var(--muted);}
-.b.pur{background:var(--purple);color:#fff;}
-.b.full{width:100%;height:42px;font-size:16px;}
-.trow{display:flex;align-items:center;gap:10px;padding:7px 0;}
-.tlbl{flex:1;font-size:12px;color:var(--muted);}
-.tsw{position:relative;width:42px;height:22px;cursor:pointer;flex-shrink:0;}
-.tsw input{opacity:0;width:0;height:0;}
-.ttr{position:absolute;inset:0;border-radius:22px;background:rgba(255,255,255,.1);transition:.3s;}
-.tsw input:checked+.ttr{background:var(--blue);}
-.tkn{position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.3s;pointer-events:none;}
-.tsw input:checked~.tkn{transform:translateX(20px);}
-.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:7px;margin-top:8px;}
-.bgsw{height:52px;border-radius:10px;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1px;transition:border-color .18s,transform .12s;}
-.bgsw:hover{transform:scale(1.06);}
-.bgsw.on{border-color:var(--blue);}
-.bg-upload{height:52px;border-radius:10px;border:1.5px dashed var(--bord);background:rgba(255,255,255,.03);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);}
-.bg-upload:hover{border-color:var(--blue);color:var(--blue);}
-.tabs{display:flex;gap:6px;margin-bottom:12px;}
-.tbtn{flex:1;height:36px;border:1px solid var(--bord);border-radius:8px;background:transparent;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:all .18s;}
-.tbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(61,155,255,.07);}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:3px;padding:9px 22px;border-radius:40px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:100;}
-.lot-edit-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.lot-edit-form .full{grid-column:1/-1;}
-
-.screen-control-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
+:root{
+  --bg:#070816;--card:#121429;--card2:#191b35;--line:rgba(255,255,255,.12);
+  --txt:#f5f7ff;--muted:#9b9cc8;--blue:#3aa0ff;--red:#ff4343;--gold:#ffd400;--green:#22e486;
 }
-.screen-control-grid .b{
-  width:100%;
-  height:48px;
-}
-@media(max-width:760px){
-  .screen-control-grid{grid-template-columns:repeat(2,1fr)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#1a1d44 0,#070816 55%,#04040b 100%);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+.wrap{width:min(980px,94vw);margin:26px auto 60px}
+h1{font-size:34px;margin:0 0 6px;letter-spacing:1px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.card{background:rgba(18,20,41,.94);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.ctitle{font-size:17px;font-weight:900;letter-spacing:3px;color:#b5b2ff;margin-bottom:10px;text-transform:uppercase}
+.note{color:var(--muted);font-size:12px;line-height:1.45;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,.btn{border:0;border-radius:10px;padding:12px 16px;font-weight:900;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.bblue{background:var(--blue);color:#001325}
+.bred{background:var(--red);color:#fff}
+.bdark{background:#2a2d48;color:#c7c8ee;border:1px solid var(--line)}
+.bgreen{background:var(--green);color:#001b12}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea,select{background:#0c0e20;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px;font:inherit}
+input{min-width:140px}
+textarea{width:100%;min-height:130px;font-family:Consolas,monospace;font-size:12px}
+.grid{display:grid;grid-template-columns:110px 1fr auto;gap:9px;align-items:center}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:430px;overflow-y:auto;padding-right:4px}
+.item{display:grid;grid-template-columns:88px 1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;padding:11px}
+.item.win{border-color:rgba(255,212,0,.35);background:rgba(255,212,0,.07)}
+.item.lost{border-color:rgba(58,160,255,.20)}
+.code{font-family:Consolas,monospace;font-size:20px;font-weight:900;color:#75d5ff}
+.main{font-size:13px;font-weight:900}
+.meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+.status{font-size:12px;font-weight:900;color:var(--gold);text-align:right;max-width:220px}
+.empty{padding:20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#15ee8b;color:#00180e;padding:13px 22px;border-radius:999px;font-weight:900;letter-spacing:2px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:none;z-index:9999}
+.danger{border-color:rgba(255,67,67,.35)}
+.small{font-size:11px;color:var(--muted)}
+.lotRow{display:grid;grid-template-columns:1fr 110px 110px auto;gap:8px;align-items:center;margin:8px 0}
+@media(max-width:720px){
+ .item{grid-template-columns:1fr}
+ .status{text-align:left}
+ .lotRow{grid-template-columns:1fr}
 }
 
-
-/* === V9.21 admin propre sans texte brut === */
-.admin-extra-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-.admin-extra-note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
-.win-list,.play-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;max-height:360px;overflow-y:auto}
-.win-row,.play-row{display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10)}
-.win-row{grid-template-columns:32px 1fr auto;background:rgba(255,215,0,.07);border-color:rgba(255,215,0,.22)}
-.win-medal{font-size:18px;text-align:center}
-.win-name,.play-main{font-size:13px;font-weight:800}
-.win-meta,.play-meta{font-size:10px;color:var(--muted);line-height:1.45;margin-top:2px}
-.win-lot,.play-status{font-size:12px;font-weight:900;color:#ffd700;text-align:right;max-width:220px}
-.play-code{font-family:'Courier New',monospace;font-size:18px;font-weight:900;color:#7dd3fc}
-.win-empty,.play-empty{text-align:center;color:var(--muted);padding:18px;font-size:12px;line-height:1.6}
-
-
-/* === V9.32 admin clean historique + classement === */
-.play-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;max-height:420px;overflow-y:auto}
-.play-row{display:grid;grid-template-columns:86px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10)}
-.play-code{font-family:'Courier New',monospace;font-size:18px;font-weight:900;color:#7dd3fc}
-.play-main{font-size:13px;font-weight:800}
-.play-meta{font-size:10px;color:var(--muted);line-height:1.45;margin-top:2px}
-.play-status{font-size:11px;font-weight:900;text-align:right;color:#ffd700;max-width:180px}
-.play-empty{text-align:center;color:var(--muted);padding:18px;font-size:12px;line-height:1.6}
+.codeGrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.codeChip{font-family:Consolas,monospace;font-size:16px;font-weight:900;color:#75d5ff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px;text-align:center}
+@media(max-width:720px){.codeGrid{grid-template-columns:repeat(4,1fr)}}
 
 </style>
 </head>
 <body>
+<div class="wrap">
+  <h1>Admin — 10 Secondes</h1>
+  <div class="sub">Panel propre V9.40 — lecture directe Firebase. Aucun script repris des anciens panels.</div>
 
-<!-- LOGIN -->
-<div id="login">
-  <div class="lbox">
-    <div><div class="logo">10 SECONDES</div><div class="logo-sub">PANNEAU ADMINISTRATEUR</div></div>
-    <input type="hidden" id="fb_k" value="AIzaSyCMuM4QvTBG5nrmR5TNClcikfJ3bBygy9Q">
-    <input type="hidden" id="fb_u" value="https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app">
-    <input type="hidden" id="fb_p" value="defis-10-secondes">
-    <div class="frow"><div class="fl">MOT DE PASSE ADMIN</div><input class="fi" id="lpwd" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-    <div style="color:var(--red);font-size:11px;min-height:16px" id="lerr"></div>
-    <button class="b p full" id="btnLogin">CONNEXION</button>
-    <div style="font-size:11px;color:var(--muted);background:rgba(255,200,0,.06);border:1px solid rgba(255,200,0,.2);border-radius:10px;padding:11px;line-height:1.9">
-      💡 Mot de passe par défaut : <strong style="color:var(--text)">admin123</strong>
+  <div class="card">
+    <div class="ctitle">🔐 Accès admin</div>
+    <div class="note">Mot de passe local pour masquer l’interface sur la borne. Il ne protège pas Firebase côté serveur.</div>
+    <div class="row">
+      <input id="adminPass" type="password" placeholder="Mot de passe">
+      <button class="bblue" id="btnUnlock">Entrer</button>
+      <button class="bdark" id="btnShowAll">Afficher quand même</button>
     </div>
+  </div>
+
+  <div id="adminArea" style="display:none">
+
+    <div class="card">
+      <div class="ctitle">🎁 Lots</div>
+      <div class="note">Tu peux désactiver le lot 2 ici. Le jackpot doit rester en lot 1.</div>
+      <div id="lotsBox" class="empty">Chargement des lots...</div>
+      <div class="row" style="margin-top:12px">
+        <button class="bblue" id="btnLoadLots">Rafraîchir lots</button>
+        <button class="bgreen" id="btnSaveLots">Sauvegarder lots</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">🖨️ Fiche codes vendeurs</div>
+      <div class="note">Complète automatiquement jusqu’à 200 codes actifs disponibles, puis ouvre une fiche imprimable.</div>
+      <div class="row">
+        <button class="bblue" id="btnPrint200">Imprimer 200 codes actifs</button>
+        <button class="bdark" id="btnPrintExisting">Imprimer codes disponibles</button>
+        <button class="bdark" id="btnRefreshCodes">Compter les codes</button>
+      </div>
+      <div id="codesInfo" class="small" style="margin-top:10px">En attente...</div>
+      <div id="codesDisplay" class="small" style="margin-top:12px;max-height:260px;overflow:auto;background:#0c0e20;border:1px solid var(--line);border-radius:12px;padding:12px;display:none"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="bdark" id="btnShowCodes">Afficher les codes disponibles</button>
+        <button class="bdark" id="btnCopyCodes">Copier les codes</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">🧾 Tous les scores / litiges</div>
+      <div class="note">Gagnants et perdants : code utilisé, heure, score, écart et pseudo si disponible. Les lignes avec ---- signifient que le jeu n’a pas transmis le code avec le score.</div>
+      <div class="row">
+        <button class="bblue" id="btnRefreshAudit">Rafraîchir tous les scores</button>
+        <button class="bdark" id="btnPrintAudit">Imprimer litiges</button>
+      </div>
+      <div class="list" id="auditList"><div class="empty">Chargement...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">🏆 Gagnants / lots remportés</div>
+      <div class="note">Liste des gagnants triée par meilleur écart à 10.000.</div>
+      <div class="row">
+        <button class="bblue" id="btnRefreshWinners">Rafraîchir gagnants</button>
+        <button class="bdark" id="btnPrintWinners">Imprimer gagnants</button>
+      </div>
+      <div class="list" id="winnersList"><div class="empty">Chargement...</div></div>
+    </div>
+
+    <div class="card danger">
+      <div class="ctitle" style="color:#ff6b6b">⚠️ Danger</div>
+      <div class="row">
+        <button class="bred" id="btnDeleteToday">Effacer scores aujourd’hui</button>
+        <button class="bred" id="btnDeleteAll">Effacer tous les scores</button>
+      </div>
+    </div>
+
   </div>
 </div>
-
-<!-- MAIN -->
-<div id="main">
-  <div class="adm-hd">
-    <div class="adm-logo">⚙️ ADMIN 10S</div>
-    <div class="spill"><div class="sdot" id="sdot"></div><span id="stxt">...</span></div>
-    <button class="b-logout" id="btnOut">Déco</button>
-  </div>
-
-  <!-- STATS -->
-  <div class="card">
-    <div class="ctitle">📊 AUJOURD'HUI</div>
-    <div class="sgrid">
-      <div class="sbox"><div class="sval" id="stJ">0</div><div class="slbl">PARTIES</div></div>
-      <div class="sbox"><div class="sval" id="stC">0</div><div class="slbl">CODES DISPOS</div></div>
-      <div class="sbox"><div class="sval" id="stT">0</div><div class="slbl">TOTAL</div></div>
-    </div>
-    <div id="bestInfo" style="font-size:12px;color:var(--muted);text-align:center;padding:4px 0"></div>
-    <button class="b sec" id="btnRefresh" style="margin-top:8px">↻ Actualiser</button>
-  </div>
-
-  <!-- CODES -->
-  <div class="card">
-    <div class="ctitle">🎟️ CODES DE PARTIE</div>
-    <div class="cctrls">
-      <select class="fsel" id="nbC"><option>1</option><option>3</option><option selected>5</option><option>10</option><option>20</option></select>
-      <button class="b s" id="btnGen">GÉNÉRER</button>
-      <button class="b sec" id="btnClrUsed">Suppr. utilisés</button>
-      <button class="b sec" id="btnCopyAll">📋 Copier tout</button>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap pour copier · Barré = utilisé</div>
-    <div class="codes-wrap" id="codesWrap"></div>
-  </div>
-
-  <!-- LOTS -->
-  <div class="card">
-    <div class="ctitle">🏆 LOTS À GAGNER</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.8">
-      Configure les lots par palier de précision. Si l'écart du joueur ≤ au seuil, il gagne le lot.
-    </div>
-    <div class="lot-list" id="lotList"></div>
-    <!-- Formulaire lot -->
-    <div style="background:rgba(255,255,255,.03);border:1px solid var(--bord);border-radius:12px;padding:14px;margin-top:4px">
-      <div style="font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:2px;color:var(--muted);margin-bottom:10px" id="lotFormTitle">➕ NOUVEAU LOT</div>
-      <input type="hidden" id="editLotKey">
-      <div class="lot-edit-form">
-        <div class="frow full"><div class="fl">NOM DU LOT</div><input class="fi" id="lotName" placeholder="Bon d'achat 20€"></div>
-        <div class="frow full"><div class="fl">DESCRIPTION (optionnel)</div><input class="fi" id="lotDesc" placeholder="À retirer en caisse"></div>
-        <div class="frow">
-          <div class="fl">SEUIL MAX (ms) = ±<span id="lotMaxSec">0</span>s</div>
-          <input class="fi" id="lotMax" type="number" min="1" max="9999" placeholder="500">
-        </div>
-        <div class="frow"><div class="fl">EMOJI</div><input class="fi" id="lotEmoji" placeholder="🎁" style="text-align:center;font-size:20px"></div>
-        <div class="frow"><div class="fl">COULEUR</div><input type="color" class="fi-color" id="lotColor" value="#ffd700"></div>
-        <div class="frow"><div class="fl">ACTIF</div><label class="tsw" style="margin-top:6px"><input type="checkbox" id="lotActive" checked><div class="ttr"></div><div class="tkn"></div></label></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="b s" id="btnSaveLot" style="flex:1;height:40px;font-size:15px">SAUVEGARDER</button>
-        <button class="b sec" id="btnCancelLot">Annuler</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CLASSEMENT -->
-  <div class="card">
-    <div class="ctitle">🏆 CLASSEMENT</div>
-    
-<div class="card">
-    <div class="ctitle">🎨 APPARENCE TABLETTE</div>
-    <div class="fl" style="margin-bottom:6px">FOND D'ÉCRAN</div>
-    <div class="bg-grid" id="bgGrid">
-      <div class="bgsw on" data-bg="default" style="background:linear-gradient(135deg,#080810,#0d0d20)">DÉFAUT</div>
-      <div class="bgsw" data-bg="cosmos" style="background:linear-gradient(135deg,#0a0020,#1a0035)">COSMOS</div>
-      <div class="bgsw" data-bg="ocean" style="background:linear-gradient(135deg,#000d20,#001540)">OCÉAN</div>
-      <div class="bgsw" data-bg="fire" style="background:linear-gradient(135deg,#1a0500,#2a1000)">FEUX</div>
-      <div class="bgsw" data-bg="forest" style="background:linear-gradient(135deg,#001a08,#002a10)">FORÊT</div>
-      <div class="bgsw" data-bg="neon" style="background:linear-gradient(135deg,#0a0010,#100020)">NEON</div>
-    </div>
-    <div class="bg-upload" id="bgUpBtn" style="margin-top:8px">📷 CHARGER UNE PHOTO</div>
-    <input type="file" id="bgFile" accept="image/*" style="display:none">
-  </div>
-
-  <!-- CONFIG -->
-  <div class="card">
-    <div class="ctitle">⚙️ PARAMÈTRES</div>
-    <div class="frow"><div class="fl">NOM DU MAGASIN</div><input class="fi" id="cfgMag" placeholder="Les Angles"></div>
-    <div class="frow"><div class="fl">TEXTE LOT FALLBACK (si aucun lot actif)</div><input class="fi" id="cfgLot" placeholder="Un bon d'achat en magasin !"></div>
-
-    <div style="margin:16px 0 10px;border-top:1px solid var(--bord);padding-top:14px">
-      <div class="ctitle" style="margin-bottom:10px">🎲 QR LOTERIE FIN DE PARTIE</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:10px">
-        Ces textes apparaissent uniquement après la partie, pas sur l'écran de jeu.
-      </div>
-      <div class="frow"><div class="fl">LIEN FORMULAIRE / QR CODE</div><input class="fi" id="cfgLotteryUrl" placeholder="https://forms.office.com/..."></div>
-      <div class="frow"><div class="fl">TITRE ÉCRAN QR</div><input class="fi" id="cfgLotteryTitle" placeholder="RETENTE TA CHANCE CHEZ TOI !"></div>
-      <div class="frow"><div class="fl">TEXTE EXPLICATIF</div><input class="fi" id="cfgLotteryText" placeholder="Scanne le QR code pour participer au tirage hebdomadaire."></div>
-      <div class="frow"><div class="fl">TERME / GAIN AFFICHÉ</div><input class="fi" id="cfgLotteryPrize" placeholder="Bon d'achat hebdo 20€"></div>
-    </div>
-
-    <div class="trow"><span class="tlbl">Sons activés sur la tablette</span><label class="tsw"><input type="checkbox" id="cfgSnd" checked><div class="ttr"></div><div class="tkn"></div></label></div>
-    <button class="b p" id="btnSaveCfg" style="margin-top:8px;width:100%;height:40px;font-size:15px">SAUVEGARDER CONFIG</button>
-  </div>
-
-  <!-- MOT DE PASSE -->
-  <div class="card">
-    <div class="ctitle">🔐 MOT DE PASSE</div>
-    <div class="frow"><div class="fl">NOUVEAU MOT DE PASSE (min. 6)</div><input class="fi" id="npwd" type="password" placeholder="Nouveau mot de passe"></div>
-    <div class="frow"><div class="fl">CONFIRMER</div><input class="fi" id="cpwd" type="password" placeholder="Répète"></div>
-    <div style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:6px" id="pwdErr"></div>
-    <button class="b pur" id="btnChgPwd" style="width:100%;height:40px;font-size:15px">CHANGER LE MOT DE PASSE</button>
-  </div>
-
-  
-  <div class="card" id="cardPrintCodes">
-    <div class="ctitle">🖨️ FICHE CODES VENDEURS</div>
-    <div class="admin-extra-note">Complète automatiquement jusqu'à <b>200 codes actifs disponibles</b>, puis ouvre une fiche imprimable.</div>
-    <div class="admin-extra-actions">
-      <button class="b p" id="btnPrintDailyCodes">IMPRIMER 200 CODES ACTIFS</button>
-      <button class="b sec" id="btnOnlyPrintCodes">Imprimer codes disponibles</button>
-    </div>
-  </div>
-
-  <div class="card" id="cardAllPlays">
-    <div class="ctitle">📋 TOUTES LES PARTIES / CODES UTILISÉS</div>
-    <div class="admin-extra-note">Remonte les codes validés, même si le client ne sauvegarde pas son pseudo.</div>
-    <div class="admin-extra-actions">
-      <button class="b p" id="btnRefreshPlays">RAFRAÎCHIR PARTIES</button>
-      <button class="b sec" id="btnPrintPlays">Imprimer parties</button>
-    </div>
-    <div class="play-list" id="playsList">
-      <div class="play-empty">Chargement des parties...</div>
-    </div>
-  </div>
-
-  <div class="card" id="cardWinners">
-    <div class="ctitle">🏆 GAGNANTS / LOTS REMPORTÉS</div>
-    <div class="admin-extra-note">Liste des gagnants enregistrés dans les scores avec un lot associé.</div>
-    <div class="admin-extra-actions">
-      <button class="b p" id="btnRefreshWinners">RAFRAÎCHIR GAGNANTS</button>
-      <button class="b sec" id="btnPrintWinners">Imprimer liste gagnants</button>
-    </div>
-    <div class="win-list" id="winnersList">
-      <div class="win-empty">Chargement des gagnants...</div>
-    </div>
-  </div>
-
-<!-- DANGER -->
-  <div class="card" style="border-color:rgba(255,59,59,.2)">
-    <div class="ctitle" style="color:var(--red)">⚠️ DANGER</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="b d" id="btnDelTd">Effacer scores aujourd'hui</button>
-      <button class="b d" id="btnDelAll">Effacer TOUS les scores</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-'use strict';
-
-// ═══════════════════════════
-// CONFIG
-// ═══════════════════════════
-let FB_URL = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
-let curPwd = 'admin123';
-let allScores = [], allCodes = {}, allLots = [], ltab = 'today';
-
-function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function fDiff(d){return `${d>=0?'+':'-'}${Math.abs(d/1000).toFixed(3)}s`;}
-function rcol(i){return['#ffd700','#cccccc','#cd7f32'][i]||'var(--muted)';}
-function gradeColor(abs){if(abs<=50)return'#00ff88';if(abs<=150)return'#7cff6b';if(abs<=300)return'#ffd700';if(abs<=600)return'#ff8c00';return'#ff3b3b';}
-
-// REST API helpers
-async function fbGet(path){const r=await fetch(FB_URL+path+'.json');if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
-async function fbSet(path,data){const r=await fetch(FB_URL+path+'.json',{method:'PUT',body:JSON.stringify(data)});return r.json();}
-async function fbPush(path,data){const r=await fetch(FB_URL+path+'.json',{method:'POST',body:JSON.stringify(data)});return r.json();}
-async function fbPatch(path,data){const r=await fetch(FB_URL+path+'.json',{method:'PATCH',body:JSON.stringify(data)});return r.json();}
-async function fbDelete(path){const r=await fetch(FB_URL+path+'.json',{method:'DELETE'});return r.json();}
-
-// ═══════════════════════════
-// LOGIN
-// ═══════════════════════════
-document.getElementById('btnLogin').addEventListener('click', doLogin);
-document.getElementById('lpwd').addEventListener('keydown', e=>{if(e.key==='Enter')doLogin();});
-
-async function doLogin(){
-  const apiKey=document.getElementById('fb_k').value.trim();
-  const dbUrl=document.getElementById('fb_u').value.trim();
-  const pid=document.getElementById('fb_p').value.trim();
-  const pwd=document.getElementById('lpwd').value;
-  if(!apiKey||!dbUrl||!pid){document.getElementById('lerr').textContent='Remplis tous les champs Firebase.';return;}
-  if(!pwd){document.getElementById('lerr').textContent='Entre le mot de passe.';return;}
-  const btn=document.getElementById('btnLogin');
-  btn.textContent='Connexion...'; btn.disabled=true;
-  // Utiliser toujours la valeur pré-configurée
-  FB_URL = document.getElementById('fb_u').value.trim().replace(/\/$/,'') 
-           || 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
-  try {
-    // Vérifier connexion + mot de passe
-    const cfg = await fbGet('/config');
-    const correct = (cfg && cfg.adminPwd) ? cfg.adminPwd : 'admin123';
-    if(pwd !== correct){
-      document.getElementById('lerr').textContent='Mot de passe incorrect.';
-      btn.textContent='CONNEXION'; btn.disabled=false;
-      return;
-    }
-    curPwd = correct;
-    // Sauvegarder config connexion
-    // Sauvegarder uniquement le mot de passe (Firebase est pré-configuré)
-    localStorage.setItem('adm_fb', JSON.stringify({dbUrl, apiKey, pid}));
-    localStorage.setItem('adm_pwd', pwd);
-    // Afficher l'admin
-    document.getElementById('login').classList.add('h');
-    document.getElementById('main').classList.add('v');
-    document.getElementById('sdot').classList.add('on');
-    document.getElementById('stxt').textContent = 'Connecté';
-    // Charger données
-    await loadAdminData(cfg);
-    // Remplir config
-    document.getElementById('cfgMag').value = cfg.magasin||'';
-    document.getElementById('cfgLot').value = cfg.lot||'';
-    document.getElementById('cfgLotteryUrl').value = cfg.lotteryUrl || '';
-    document.getElementById('cfgLotteryTitle').value = cfg.lotteryTitle || 'RETENTE TA CHANCE CHEZ TOI !';
-    document.getElementById('cfgLotteryText').value = cfg.lotteryText || 'Scanne le QR code pour participer au tirage hebdomadaire.';
-    document.getElementById('cfgLotteryPrize').value = cfg.lotteryPrize || "Bon d'achat hebdo 20€";
-    document.getElementById('cfgSnd').checked = cfg.sound!==false;
-  } catch(e) {
-    document.getElementById('lerr').textContent = 'Erreur : '+e.message;
-    btn.textContent='CONNEXION'; btn.disabled=false;
-  }
-}
-
-async function loadAdminData(cfg=null){
-  try {
-    const [codesSnap, lotsSnap, scoresSnap] = await Promise.all([
-      fbGet('/codes'),
-      fbGet('/lots'),
-      fbGet('/scores')
-    ]);
-    allCodes = codesSnap || {};
-    allLots = lotsSnap ? Object.entries(lotsSnap).map(([k,v])=>({...v,_key:k})).sort((a,b)=>(a.maxDiff||0)-(b.maxDiff||0)) : [];
-    allScores = scoresSnap ? Object.entries(scoresSnap).map(([k,v])=>({...v,_key:k})) : [];
-    updateStats();
-    renderCodes();
-    renderLots();
-    renderAdminScores(ltab==='today');
-  } catch(e){ console.error('loadAdminData:', e); }
-}
-
-document.getElementById('btnRefresh').addEventListener('click', async ()=>{
-  await loadAdminData();
-  toast('Données actualisées !');
-});
-
-document.getElementById('btnOut').addEventListener('click',()=>{
-  localStorage.removeItem('adm_fb'); localStorage.removeItem('adm_pwd'); location.reload();
-});
-
-// Auto-login
-// Les champs Firebase sont toujours pré-remplis en dur
-// On vérifie juste si on a un mot de passe sauvegardé pour l'auto-login
-const savedFb = localStorage.getItem('adm_fb');
-const savedPwd = localStorage.getItem('adm_pwd');
-if(savedPwd){
-  try{
-    // Toujours utiliser les valeurs pré-remplies (plus fiable)
-    document.getElementById('lpwd').value=savedPwd;
-    setTimeout(doLogin, 300);
-  }catch(e){}
-}
-
-// ═══════════════════════════
-// STATS
-// ═══════════════════════════
-function updateStats(){
-  const today=todayKey();
-  const tdSc=allScores.filter(s=>s.day===today);
-  const dispos=Object.values(allCodes).filter(c=>!c.used).length;
-  document.getElementById('stJ').textContent=tdSc.length;
-  document.getElementById('stC').textContent=dispos;
-  document.getElementById('stT').textContent=allScores.length;
-  const best=tdSc.sort((a,b)=>a.diff-b.diff)[0];
-  document.getElementById('bestInfo').textContent=best?`🏆 Meilleur : ${best.pseudo} — ${fDiff(best.rawDiff||0)}`:"Aucune partie aujourd'hui";
-}
-
-// ═══════════════════════════
-// CODES
-// ═══════════════════════════
-function genCode(){const c='0123456789';return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');}
-
-document.getElementById('btnGen').addEventListener('click', async()=>{
-  const n=parseInt(document.getElementById('nbC').value)||5;
-  const updates={};
-  let count=0;
-  while(count<n){
-    const code=genCode();
-    if(!allCodes[code]){updates[code]={used:false,createdAt:Date.now()};count++;}
-  }
-  await fbPatch('/codes', updates);
-  await loadAdminData();
-  toast(`${n} code${n>1?'s':''} généré${n>1?'s':''}!`);
-});
-
-document.getElementById('btnClrUsed').addEventListener('click', async()=>{
-  if(!confirm('Supprimer tous les codes utilisés ?'))return;
-  const updates={};
-  Object.entries(allCodes).forEach(([k,v])=>{if(v.used)updates[k]=null;});
-  await fbPatch('/codes', updates);
-  await loadAdminData();
-  toast('Codes utilisés supprimés.');
-});
-
-document.getElementById('btnCopyAll').addEventListener('click',()=>{
-  const dispos=Object.entries(allCodes).filter(([,v])=>!v.used).map(([k])=>k);
-  if(!dispos.length){toast('Aucun code disponible');return;}
-  navigator.clipboard.writeText(dispos.join('\n')).then(()=>toast(`${dispos.length} codes copiés !`));
-});
-
-function renderCodes(){
-  const w=document.getElementById('codesWrap'); w.innerHTML='';
-  const entries=Object.entries(allCodes).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-  if(!entries.length){w.innerHTML='<div style="font-size:12px;color:var(--muted)">Aucun code. Génère-en ci-dessus.</div>';return;}
-  entries.forEach(([code,data])=>{
-    const el=document.createElement('div');
-    el.className='chip'+(data.used?' used':'');
-    el.textContent=code;
-    if(data.used){
-      const who=data.pseudo?` · ${data.pseudo}`:'';
-      el.title='Utilisé'+who;
-    } else {
-      el.title='Tap pour copier';
-      el.addEventListener('click',()=>navigator.clipboard.writeText(code).then(()=>toast(code+' copié !')));
-    }
-    w.appendChild(el);
-  });
-}
-
-// ═══════════════════════════
-// LOTS
-// ═══════════════════════════
-document.getElementById('lotMax').addEventListener('input',()=>{
-  const v=parseInt(document.getElementById('lotMax').value)||0;
-  document.getElementById('lotMaxSec').textContent=(v/1000).toFixed(3);
-});
-
-let editKey=null;
-
-function renderLots(){
-  const el=document.getElementById('lotList'); el.innerHTML='';
-  if(!allLots.length){el.innerHTML='<div class="no-lots">Aucun lot.<br>Ajoute-en un ci-dessous !</div>';return;}
-  allLots.forEach((lot,i)=>{
-    const color=lot.color||'#ffd700';
-    const active=lot.active!==false;
-    const div=document.createElement('div'); div.className='lot-item';
-    const hd=document.createElement('div'); hd.className='lot-item-hd';
-    const rank=document.createElement('div'); rank.className='lot-rank'; rank.textContent='#'+(i+1);
-    const emoji=document.createElement('span'); emoji.textContent=lot.emoji||'🎁'; emoji.style.fontSize='24px';
-    const name=document.createElement('span'); name.style.cssText=`font-family:'Bebas Neue',cursive;font-size:16px;color:${color};flex:1`; name.textContent=lot.name||'';
-    const pill=document.createElement('span'); pill.style.cssText=`font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid ${color};color:${color}`; pill.textContent='≤ ±'+(( lot.maxDiff||0)/1000).toFixed(2)+'s';
-    hd.appendChild(rank); hd.appendChild(emoji); hd.appendChild(name); hd.appendChild(pill);
-    if(!active){const b=document.createElement('span');b.style.cssText='font-size:10px;color:var(--muted);padding:2px 7px;border:1px solid var(--bord);border-radius:5px';b.textContent='INACTIF';hd.appendChild(b);}
-    div.appendChild(hd);
-    if(lot.desc){const desc=document.createElement('div');desc.style.cssText='font-size:12px;color:var(--muted);margin-bottom:6px';desc.textContent=lot.desc;div.appendChild(desc);}
-    const btns=document.createElement('div'); btns.className='lot-btns';
-    const bEdit=document.createElement('button'); bEdit.className='b sec'; bEdit.textContent='Modifier'; bEdit.addEventListener('click',()=>editLot(lot._key));
-    const bDel=document.createElement('button'); bDel.className='b d'; bDel.textContent='Supprimer'; bDel.addEventListener('click',()=>deleteLot(lot._key));
-    const bToggle=document.createElement('button'); bToggle.className='b sec'; bToggle.textContent=active?'Désactiver':'Activer'; bToggle.addEventListener('click',()=>toggleLot(lot._key,!active));
-    btns.appendChild(bEdit); btns.appendChild(bDel); btns.appendChild(bToggle);
-    div.appendChild(btns);
-    el.appendChild(div);
-  });
-}
-
-function editLot(key){
-  const lot=allLots.find(l=>l._key===key); if(!lot)return;
-  editKey=key;
-  document.getElementById('lotFormTitle').textContent='✏️ MODIFIER LE LOT';
-  document.getElementById('lotName').value=lot.name||'';
-  document.getElementById('lotDesc').value=lot.desc||'';
-  document.getElementById('lotMax').value=lot.maxDiff||'';
-  document.getElementById('lotMaxSec').textContent=((lot.maxDiff||0)/1000).toFixed(3);
-  document.getElementById('lotEmoji').value=lot.emoji||'🎁';
-  document.getElementById('lotColor').value=lot.color||'#ffd700';
-  document.getElementById('lotActive').checked=lot.active!==false;
-  document.getElementById('lotName').scrollIntoView({behavior:'smooth'});
-}
-
-async function deleteLot(key){if(!confirm('Supprimer ce lot ?'))return;await fbDelete('/lots/'+key);await loadAdminData();toast('Lot supprimé.');}
-async function toggleLot(key,active){await fbPatch('/lots/'+key,{active});await loadAdminData();toast(active?'Lot activé.':'Lot désactivé.');}
-
-document.getElementById('btnSaveLot').addEventListener('click', async()=>{
-  const name=document.getElementById('lotName').value.trim();
-  const maxDiff=parseInt(document.getElementById('lotMax').value)||0;
-  if(!name){alert('Donne un nom au lot.');return;}
-  if(maxDiff<1){alert('Entre un seuil en ms (ex: 500 = ±0.5s).');return;}
-  const lot={name,desc:document.getElementById('lotDesc').value.trim(),maxDiff,emoji:document.getElementById('lotEmoji').value.trim()||'🎁',color:document.getElementById('lotColor').value||'#ffd700',active:document.getElementById('lotActive').checked,updatedAt:Date.now()};
-  try {
-    if(editKey){
-      await fbSet('/lots/'+editKey, lot);
-      toast('Lot mis à jour !');
-    } else {
-      await fbPush('/lots', lot);
-      toast('Lot ajouté !');
-    }
-    resetLotForm();
-    await loadAdminData();
-  } catch(e){ toast('Erreur : '+e.message); }
-});
-
-document.getElementById('btnCancelLot').addEventListener('click', resetLotForm);
-function resetLotForm(){
-  editKey=null;
-  document.getElementById('lotFormTitle').textContent='➕ NOUVEAU LOT';
-  document.getElementById('lotName').value='';
-  document.getElementById('lotDesc').value='';
-  document.getElementById('lotMax').value='';
-  document.getElementById('lotMaxSec').textContent='0';
-  document.getElementById('lotEmoji').value='🎁';
-  document.getElementById('lotColor').value='#ffd700';
-  document.getElementById('lotActive').checked=true;
-}
-
-// ═══════════════════════════
-// SCORES
-// ═══════════════════════════
-document.getElementById('tabTd').addEventListener('click',()=>{ltab='today';document.getElementById('tabTd').classList.add('on');document.getElementById('tabAt').classList.remove('on');renderAdminScores(true);});
-document.getElementById('tabAt').addEventListener('click',()=>{ltab='alltime';document.getElementById('tabAt').classList.add('on');document.getElementById('tabTd').classList.remove('on');renderAdminScores(false);});
-
-function renderAdminScores(today){
-  const t=todayKey();
-  const sc=today?allScores.filter(s=>s.day===t).sort((a,b)=>a.diff-b.diff).slice(0,20):[...allScores].sort((a,b)=>a.diff-b.diff).slice(0,20);
-  const el=document.getElementById('scoreWrap'); el.innerHTML='';
-  if(!sc.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">Aucune partie.</div>';return;}
-  sc.forEach((s,i)=>{
-    const c=gradeColor(s.diff||0);
-    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
-    const d=new Date(s.ts), t2=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    const lotTag=s.lot?` <span style="font-size:10px;background:rgba(255,215,0,.15);color:#ffd700;padding:1px 6px;border-radius:5px">${s.lotEmoji||'🎁'} ${s.lot}</span>`:'';
-    const row=document.createElement('div'); row.className='srow';
-    row.innerHTML=`<div class="smedal">${medal}</div><div style="flex:1"><div class="spseudo">${s.pseudo}${lotTag}</div><div class="smeta">${(s.score/1000).toFixed(3)}s · ${t2}</div></div><div class="sdiff" style="color:${c}">${fDiff(s.rawDiff||0)}</div>`;
-    el.appendChild(row);
-  });
-}
-
-// ═══════════════════════════
-// APPARENCE
-// ═══════════════════════════
-document.getElementById('bgGrid').addEventListener('click', async e=>{
-  const sw=e.target.closest('.bgsw'); if(!sw)return;
-  document.querySelectorAll('.bgsw').forEach(s=>s.classList.remove('on')); sw.classList.add('on');
-  await fbPatch('/config',{bg:sw.dataset.bg,bgCustom:null}); toast('Fond mis à jour !');
-});
-document.getElementById('bgUpBtn').addEventListener('click',()=>document.getElementById('bgFile').click());
-document.getElementById('bgFile').addEventListener('change',e=>{
-  const f=e.target.files[0]; if(!f)return;
-  const r=new FileReader();
-  r.onload=async ev=>{await fbPatch('/config',{bgCustom:ev.target.result,bg:null});document.querySelectorAll('.bgsw').forEach(s=>s.classList.remove('on'));toast('Photo appliquée !');};
-  r.readAsDataURL(f);
-});
-
-// ═══════════════════════════
-// CONFIG
-// ═══════════════════════════
-document.getElementById('btnSaveCfg').addEventListener('click', async()=>{
-  const cfg={
-    magasin:document.getElementById('cfgMag').value.trim(),
-    lot:document.getElementById('cfgLot').value.trim(),
-    lotteryUrl:document.getElementById('cfgLotteryUrl').value.trim(),
-    lotteryTitle:document.getElementById('cfgLotteryTitle').value.trim(),
-    lotteryText:document.getElementById('cfgLotteryText').value.trim(),
-    lotteryPrize:document.getElementById('cfgLotteryPrize').value.trim(),
-    sound:document.getElementById('cfgSnd').checked,
-    adminPwd:curPwd
-  };
-  await fbPatch('/config', cfg);
-  toast('Config sauvegardée !');
-});
-
-document.getElementById('btnChgPwd').addEventListener('click', async()=>{
-  const np=document.getElementById('npwd').value, cp=document.getElementById('cpwd').value;
-  if(np.length<6){document.getElementById('pwdErr').textContent='Minimum 6 caractères.';return;}
-  if(np!==cp){document.getElementById('pwdErr').textContent='Les mots de passe ne correspondent pas.';return;}
-  document.getElementById('pwdErr').textContent='';
-  curPwd=np; localStorage.setItem('adm_pwd',np);
-  await fbPatch('/config',{adminPwd:np});
-  toast('Mot de passe mis à jour !');
-  document.getElementById('npwd').value=''; document.getElementById('cpwd').value='';
-});
-
-// ═══════════════════════════
-// DANGER
-// ═══════════════════════════
-document.getElementById('btnDelTd').addEventListener('click', async()=>{
-  if(!confirm("Effacer les scores d'aujourd'hui ?"))return;
-  const today=todayKey(), updates={};
-  allScores.filter(s=>s.day===today).forEach(s=>{updates[s._key]=null;});
-  await fbPatch('/scores', updates);
-  await loadAdminData();
-  toast("Scores du jour effacés.");
-});
-document.getElementById('btnDelAll').addEventListener('click', async()=>{
-  if(!confirm('EFFACER TOUS LES SCORES ? Irréversible !'))return;
-  await fbDelete('/scores');
-  await loadAdminData();
-  toast('Tous les scores effacés.');
-});
-
-// ═══════════════════════════
-// TOAST
-// ═══════════════════════════
-let toastTimer=null;
-function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.opacity='0',dur);}
-</script>
-
-
-<script>
-/* === V9.21 admin extra clean sans texte brut === */
 (function(){
+  "use strict";
+
+  const DB = "https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app";
+  const ADMIN_PASSWORD = "admin10";
   const TARGET_CODES = 200;
-  const DB_FALLBACK = 'https://defis-10-secondes-default-rtdb.europe-west1.firebasedatabase.app';
 
-  function dbBase(){
-    return ((typeof FB_URL !== 'undefined' && FB_URL) ||
-      (typeof FIREBASE_URL !== 'undefined' && FIREBASE_URL) ||
-      (typeof DB_URL !== 'undefined' && DB_URL) ||
-      DB_FALLBACK).replace(/\/$/,'');
-  }
+  let lotsCache = [];
 
-  async function xGet(path){
-    if(typeof fbGet === 'function') return await fbGet(path);
-    const r = await fetch(dbBase() + path + '.json?t=' + Date.now(), {cache:'no-store'});
-    if(!r.ok) throw new Error('GET ' + path + ' ' + r.status);
-    return await r.json();
-  }
+  function $(id){ return document.getElementById(id); }
 
-  async function xPatch(path, data){
-    if(typeof fbPatch === 'function') return await fbPatch(path, data);
-    const r = await fetch(dbBase() + path + '.json', {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
-    });
-    if(!r.ok) throw new Error('PATCH ' + path + ' ' + r.status);
-    return await r.json();
-  }
-
-  async function xDelete(path){
-    const r = await fetch(dbBase() + path + '.json', {method:'DELETE'});
-    if(!r.ok) throw new Error('DELETE ' + path + ' ' + r.status);
-    return await r.json();
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(()=>{ t.style.display = "none"; }, 2200);
   }
 
   function esc(s){
-    return String(s || '').replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  async function fbGet(path){
+    const r = await fetch(DB + path + ".json?t=" + Date.now(), {cache:"no-store", mode:"cors"});
+    if(!r.ok) throw new Error("GET " + path + " : " + r.status);
+    return await r.json();
+  }
+
+  async function fbPatch(path, data){
+    const r = await fetch(DB + path + ".json", {
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error("PATCH " + path + " : " + r.status);
+    return await r.json();
+  }
+
+  async function fbPut(path, data){
+    const r = await fetch(DB + path + ".json", {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error("PUT " + path + " : " + r.status);
+    return await r.json();
+  }
+
+  async function fbDelete(path){
+    const r = await fetch(DB + path + ".json", {method:"DELETE"});
+    if(!r.ok) throw new Error("DELETE " + path + " : " + r.status);
+    return await r.json();
+  }
+
+  function dayFromTs(ts){
+    if(!ts) return "";
+    const d = new Date(ts);
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  function timeFromTs(ts){
+    if(!ts) return "";
+    const d = new Date(ts);
+    return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0");
+  }
+
+  function todayKey(){ return dayFromTs(Date.now()); }
+
+  function rawDiff(x){ return Number(x.rawDiff ?? x.diff ?? 0) || 0; }
+  function absDiff(x){ return Math.abs(Number(x.rawDiff ?? x.diff ?? 999999)); }
+  function isWinner(x){ return !!(x.lot || x.prize || x.win === true || x.isWinner === true); }
+
+  function scoreText(x){
+    const score = Number(x.score || 0);
+    if(!score) return "";
+    const raw = rawDiff(x);
+    return (score/1000).toFixed(3)+"s · "+(raw>0?"+":"")+(raw/1000).toFixed(3)+"s";
+  }
+
+  function statusText(x){
+    if(isWinner(x)) return "🏆 " + (x.lot || x.prize || "GAGNANT");
+    if(Number(x.score || 0)) return "PERDANT";
+    if(x.status === "code_validated") return "CODE VALIDÉ";
+    if(x.closedWithoutSave) return "FERMÉ SANS SAVE";
+    return x.status || "SANS SCORE";
+  }
+
+  function normalizePlay(key,p){
+    const ts = p.ts || p.updatedAt || p.finishedAt || p.codeValidatedAt || p.createdAt || 0;
+    return {
+      _id:"play_"+key, source:"plays", code:p.code || "", pseudo:p.pseudo || "",
+      day:p.day || dayFromTs(ts), ts,
+      score:Number(p.score || 0),
+      rawDiff:Number(p.rawDiff ?? p.diff ?? 0),
+      diff:Math.abs(Number(p.rawDiff ?? p.diff ?? 0)),
+      lot:p.lot || "", lotEmoji:p.lotEmoji || "", prize:p.prize || "",
+      win:p.win, isWinner:p.isWinner, status:p.status || "",
+      closedWithoutSave:p.closedWithoutSave
+    };
+  }
+
+  function normalizeScore(key,s){
+    const ts = s.ts || s.savedAt || s.createdAt || 0;
+    return {
+      _id:"score_"+key, source:"scores", code:s.code || "", pseudo:s.pseudo || "",
+      day:s.day || dayFromTs(ts), ts,
+      score:Number(s.score || 0),
+      rawDiff:Number(s.rawDiff ?? s.diff ?? 0),
+      diff:Math.abs(Number(s.rawDiff ?? s.diff ?? 0)),
+      lot:s.lot || "", lotEmoji:s.lotEmoji || "", prize:s.prize || "",
+      win:s.win, isWinner:s.isWinner, status:s.status || "",
+      closedWithoutSave:s.closedWithoutSave
+    };
+  }
+
+  async function fetchRows(){
+    const playsSnap = await fbGet("/plays").catch(()=>null);
+    const scoresSnap = await fbGet("/scores").catch(()=>null);
+
+    const plays = playsSnap ? Object.entries(playsSnap).map(([k,v])=>normalizePlay(k,v||{})) : [];
+    const scores = scoresSnap ? Object.entries(scoresSnap).map(([k,v])=>normalizeScore(k,v||{})) : [];
+
+    const out = [];
+    const seen = new Set();
+
+    plays.forEach(p=>{
+      const sig = [p.code,p.score,p.rawDiff,p.ts].join("|");
+      seen.add(sig);
+      out.push(p);
+    });
+
+    scores.forEach(s=>{
+      const sig = [s.code,s.score,s.rawDiff,s.ts].join("|");
+      if(!seen.has(sig)) out.push(s);
+    });
+
+    out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    return out;
+  }
+
+  function renderRows(el, rows, onlyWinners){
+    if(!rows.length){
+      el.innerHTML = '<div class="empty">Aucune donnée trouvée.</div>';
+      return;
+    }
+    el.innerHTML = "";
+    rows.slice(0,250).forEach((r,i)=>{
+      const div = document.createElement("div");
+      div.className = "item " + (isWinner(r) ? "win" : "lost");
+      const medal = onlyWinners ? (i===0?"🥇":i===1?"🥈":i===2?"🥉":"🏆") : "";
+      const main = onlyWinners
+        ? `${medal} ${r.pseudo || "À RENSEIGNER"} · ${r.source}`
+        : `${r.pseudo || "Sans pseudo"} · ${r.source}`;
+      const meta = `${r.day || ""} · ${timeFromTs(r.ts)}${scoreText(r) ? " · " + scoreText(r) : ""}`;
+      const status = onlyWinners
+        ? `${r.lotEmoji || "🎁"} ${r.lot || r.prize || "Lot gagné"}`
+        : statusText(r);
+      div.innerHTML =
+        `<div class="code">${esc(r.code || "----")}</div>`+
+        `<div><div class="main">${esc(main)}</div><div class="meta">${esc(meta)}</div></div>`+
+        `<div class="status">${esc(status)}</div>`;
+      el.appendChild(div);
     });
   }
 
-  function todayKey(){
+  async function loadAudit(){
+    const el = $("auditList");
+    el.innerHTML = '<div class="empty">Lecture Firebase /plays et /scores...</div>';
+    try{
+      const rows = await fetchRows();
+      renderRows(el, rows, false);
+    }catch(e){
+      el.innerHTML = `<div class="empty">Erreur Firebase : ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function loadWinners(){
+    const el = $("winnersList");
+    el.innerHTML = '<div class="empty">Lecture gagnants...</div>';
+    try{
+      const rows = (await fetchRows()).filter(isWinner);
+      rows.sort((a,b)=>{
+        const da = absDiff(a), db = absDiff(b);
+        if(da !== db) return da - db;
+        return (b.ts || 0) - (a.ts || 0);
+      });
+      renderRows(el, rows, true);
+    }catch(e){
+      el.innerHTML = `<div class="empty">Erreur gagnants : ${esc(e.message)}</div>`;
+    }
+  }
+
+  function codeIsAvailableObj(v){
+    if(v === null || v === undefined) return false;
+    if(typeof v !== "object") return true;
+    if(v.used === true || v.consumed === true || v.disabled === true || v.active === false) return false;
+    return true;
+  }
+
+  function getCodeEntries(snap){
+    if(!snap) return [];
+    if(Array.isArray(snap)){
+      return snap.map((v,i)=>[String(v.code || v.id || i).padStart(4,"0"), v]);
+    }
+    return Object.entries(snap).map(([k,v])=>[String(k), v]);
+  }
+
+  async function availableCodes(){
+    const snap = await fbGet("/codes").catch(()=>null);
+    return getCodeEntries(snap)
+      .filter(([code,v]) => /^[0-9]{4}$/.test(code) && codeIsAvailableObj(v))
+      .map(([code]) => code)
+      .sort();
+  }
+
+  function randomCode(){
+    return String(Math.floor(Math.random()*10000)).padStart(4,"0");
+  }
+
+  async function ensureCodes(target){
+    const snap = await fbGet("/codes").catch(()=>null);
+    const entries = getCodeEntries(snap);
+    const existing = new Set(entries.map(([code])=>code));
+    const available = entries.filter(([code,v]) => /^[0-9]{4}$/.test(code) && codeIsAvailableObj(v)).map(([code])=>code);
+
+    const updates = {};
+    let safety = 0;
+    while(available.length + Object.keys(updates).length < target && safety < 20000){
+      safety++;
+      const c = randomCode();
+      if(existing.has(c) || updates[c]) continue;
+      existing.add(c);
+      updates[c] = {code:c, active:true, used:false, createdAt:Date.now()};
+    }
+
+    if(Object.keys(updates).length){
+      await fbPatch("/codes", updates);
+    }
+
+    return await availableCodes();
+  }
+
+  function printCodes(codes, title){
     const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const html =
+      '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+
+      '<style>body{font-family:Arial;padding:18px;color:#111}h1{font-size:22px;margin:0 0 6px}.sub{font-size:12px;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.c{border:1px solid #222;border-radius:8px;padding:8px;text-align:center;font-size:22px;font-weight:900;letter-spacing:2px}</style>'+
+      '</head><body><h1>'+esc(title)+'</h1><div class="sub">Imprimé le '+d.toLocaleString("fr-FR")+' — '+codes.length+' codes</div><div class="grid">'+
+      codes.map(c=>'<div class="c">'+esc(c)+'</div>').join("")+
+      '</div></body></html>';
+
+    const w = window.open("", "_blank");
+    if(!w){ alert("Popup bloquée : autorise les pop-ups."); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
   }
 
-  function timeTxt(ts){
-    const d = new Date(ts || Date.now());
-    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  async function print200(){
+    const btn = $("btnPrint200");
+    btn.disabled = true;
+    btn.textContent = "Préparation...";
+    try{
+      const codes = (await ensureCodes(TARGET_CODES)).slice(0,TARGET_CODES);
+      $("codesInfo").textContent = codes.length + " codes actifs disponibles.";
+      if(!codes.length) alert("Aucun code disponible.");
+      else printCodes(codes, "Fiche vendeurs — 200 codes actifs");
+      toast("Fiche codes prête");
+    }catch(e){
+      alert("Erreur codes : " + e.message);
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "Imprimer 200 codes actifs";
+    }
   }
 
-  function openPrint(title, bodyHtml, extraCss){
-    const html = [
-      '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>', esc(title), '</title>',
-      '<style>body{font-family:Arial,Helvetica,sans-serif;padding:18px;color:#111;background:#fff}h1{margin:0 0 12px;font-size:22px}.muted{font-size:11px;color:#555;margin-bottom:12px}',
-      extraCss || '',
-      '</style></head><body>',
-      bodyHtml,
-      '
+  async function printExisting(){
+    try{
+      const codes = await availableCodes();
+      $("codesInfo").textContent = codes.length + " codes actifs disponibles.";
+      if(!codes.length) alert("Aucun code disponible.");
+      else printCodes(codes.slice(0,TARGET_CODES), "Codes disponibles existants");
+    }catch(e){
+      alert("Erreur codes : " + e.message);
+    }
+  }
+
+  function renderCodesDisplay(codes){
+    const box = $("codesDisplay");
+    if(!box) return;
+    if(!codes || !codes.length){
+      box.style.display = "block";
+      box.innerHTML = '<div class="empty">Aucun code disponible.</div>';
+      return;
+    }
+    box.style.display = "block";
+    box.innerHTML = '<div class="codeGrid">' + codes.map(c => '<div class="codeChip">'+esc(c)+'</div>').join("") + '</div>';
+  }
+
+  async function showCodes(){
+    const btn = $("btnShowCodes");
+    btn.disabled = true;
+    btn.textContent = "Chargement...";
+    try{
+      const codes = (await availableCodes()).slice(0,TARGET_CODES);
+      $("codesInfo").textContent = codes.length + " codes actifs disponibles.";
+      renderCodesDisplay(codes);
+      toast("Codes affichés");
+    }catch(e){
+      alert("Erreur affichage codes : " + e.message);
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "Afficher les codes disponibles";
+    }
+  }
+
+  async function copyCodes(){
+    try{
+      const codes = (await availableCodes()).slice(0,TARGET_CODES);
+      if(!codes.length){ alert("Aucun code disponible."); return; }
+      const txt = codes.join("\\n");
+      await navigator.clipboard.writeText(txt);
+      renderCodesDisplay(codes);
+      toast("Codes copiés");
+    }catch(e){
+      alert("Copie impossible : " + e.message);
+    }
+  }
+
+  async function refreshCodes(){
+    try{
+      const codes = await availableCodes();
+      $("codesInfo").textContent = codes.length + " codes actifs disponibles.";
+      renderCodesDisplay(codes.slice(0,TARGET_CODES));
+      toast("Codes actualisés");
+    }catch(e){
+      $("codesInfo").textContent = "Erreur : " + e.message;
+    }
+  }
+
+  function printNode(title, id){
+    const el = $(id);
+    if(!el) return;
+    const w = window.open("", "_blank");
+    if(!w){ alert("Popup bloquée."); return; }
+    w.document.open();
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>body{font-family:Arial;padding:20px;color:#111}.item{border-bottom:1px solid #ddd;padding:8px}.code{font-weight:bold;font-size:18px}.meta{font-size:12px;color:#555}.status{float:right;font-weight:bold}</style></head><body><h1>'+esc(title)+'</h1>'+el.innerHTML+'</body></html>');
+    w.document.close();
+    setTimeout(()=>{ try{ w.print(); }catch(e){} }, 300);
+  }
+
+  async function loadLots(){
+    const box = $("lotsBox");
+    box.innerHTML = '<div class="empty">Lecture lots...</div>';
+    try{
+      const snap = await fbGet("/lots");
+      let lots = [];
+      if(Array.isArray(snap)) lots = snap.map((v,i)=>({key:String(i), ...(v||{})}));
+      else if(snap && typeof snap === "object") lots = Object.entries(snap).map(([k,v])=>({key:k, ...(v||{})}));
+      lotsCache = lots;
+
+      if(!lots.length){
+        box.innerHTML = '<div class="empty">Aucun lot trouvé dans /lots.</div>';
+        return;
+      }
+
+      box.innerHTML = lots.map((l,i)=>`
+        <div class="lotRow" data-i="${i}">
+          <input class="lotName" value="${esc(l.name || l.title || l.label || "")}" placeholder="Nom lot">
+          <input class="lotTolerance" type="number" value="${Number(l.tolerance ?? l.ms ?? l.threshold ?? 0)}" placeholder="Tol. ms">
+          <select class="lotActive">
+            <option value="true" ${l.active !== false ? "selected" : ""}>Actif</option>
+            <option value="false" ${l.active === false ? "selected" : ""}>Inactif</option>
+          </select>
+          <span class="small">lot ${i+1}</span>
+        </div>
+      `).join("");
+    }catch(e){
+      box.innerHTML = '<div class="empty">Erreur lots : '+esc(e.message)+'</div>';
+    }
+  }
+
+  async function saveLots(){
+    if(!lotsCache.length){ alert("Aucun lot chargé."); return; }
+    const updates = {};
+    document.querySelectorAll(".lotRow").forEach(row=>{
+      const i = Number(row.dataset.i);
+      const l = lotsCache[i];
+      if(!l) return;
+      const key = l.key;
+      updates[key] = {
+        ...l,
+        name: row.querySelector(".lotName").value.trim(),
+        tolerance: Number(row.querySelector(".lotTolerance").value || 0),
+        active: row.querySelector(".lotActive").value === "true"
+      };
+      delete updates[key].key;
+    });
+    try{
+      await fbPatch("/lots", updates);
+      toast("Lots sauvegardés");
+      loadLots();
+    }catch(e){
+      alert("Erreur sauvegarde lots : " + e.message);
+    }
+  }
+
+  async function deleteToday(){
+    if(!confirm("Effacer les scores d'aujourd'hui ?")) return;
+    const snap = await fbGet("/scores").catch(()=>null);
+    const today = todayKey();
+    const updates = {};
+    let count = 0;
+    if(snap){
+      Object.entries(snap).forEach(([k,s])=>{
+        const ts = s.ts || s.savedAt || s.createdAt || 0;
+        if((s.day || dayFromTs(ts)) === today){
+          updates[k] = null;
+          count++;
+        }
+      });
+    }
+    if(count) await fbPatch("/scores", updates);
+    toast(count + " score(s) supprimé(s)");
+    loadAudit(); loadWinners();
+  }
+
+  async function deleteAll(){
+    if(!confirm("Effacer TOUS les scores ?")) return;
+    if(!confirm("Confirmation définitive ?")) return;
+    await fbDelete("/scores");
+    toast("Scores supprimés");
+    loadAudit(); loadWinners();
+  }
+
+  function unlock(){
+    $("adminArea").style.display = "block";
+    loadLots();
+    refreshCodes();
+    loadAudit();
+    loadWinners();
+  }
+
+  $("btnUnlock").addEventListener("click", ()=>{
+    const pass = $("adminPass").value;
+    if(pass === ADMIN_PASSWORD) unlock();
+    else alert("Mot de passe incorrect. Si tu veux, utilise le bouton Afficher quand même.");
+  });
+  $("btnShowAll").addEventListener("click", unlock);
+
+  $("btnLoadLots").addEventListener("click", loadLots);
+  $("btnSaveLots").addEventListener("click", saveLots);
+  $("btnPrint200").addEventListener("click", print200);
+  $("btnPrintExisting").addEventListener("click", printExisting);
+  $("btnRefreshCodes").addEventListener("click", refreshCodes);
+  $("btnShowCodes").addEventListener("click", showCodes);
+  $("btnCopyCodes").addEventListener("click", copyCodes);
+  $("btnRefreshAudit").addEventListener("click", loadAudit);
+  $("btnPrintAudit").addEventListener("click", ()=>printNode("Tous les scores / litiges", "auditList"));
+  $("btnRefreshWinners").addEventListener("click", loadWinners);
+  $("btnPrintWinners").addEventListener("click", ()=>printNode("Gagnants 10 Secondes", "winnersList"));
+  $("btnDeleteToday").addEventListener("click", ()=>deleteToday().catch(e=>alert(e.message)));
+  $("btnDeleteAll").addEventListener("click", ()=>deleteAll().catch(e=>alert(e.message)));
+})();
+</script>
+</body>
+</html>
