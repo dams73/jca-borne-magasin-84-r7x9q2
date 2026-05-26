@@ -1,8 +1,9 @@
-V9.33 — admin Firebase direct
+V9.34 — jackpot lot 1 avec effets même en tolérance test
 
-Jeu non modifié.
-Admin uniquement :
-- Lecture directe Firebase REST pour /plays et /scores.
-- Fonctionne en local et sur GitHub si internet OK et règles Firebase OK.
-- Affiche erreurs si Firebase refuse.
-- Historique parties/codes et gagnants.
+Base stable.
+Correction :
+- Les effets jackpot ne demandent plus un écart exact de 0 ms.
+- Si le lot gagné est le lot 1, c'est jackpot :
+  titre JACKPOT, alarme sonore, flash, confettis.
+- Permet de tester avec un seuil admin à 1000 ms.
+- Lot 2 / autres lots restent sans effets jackpot.
